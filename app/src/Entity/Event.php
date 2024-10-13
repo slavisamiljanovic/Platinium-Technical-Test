@@ -45,7 +45,7 @@ class Event
         nullable: false,
         name: 'organiser_id',
         referencedColumnName: 'id',
-        onDelete: 'CASCADE',
+        onDelete: 'CASCADE'
     )]
     private ?Organiser $organiser = null;
 

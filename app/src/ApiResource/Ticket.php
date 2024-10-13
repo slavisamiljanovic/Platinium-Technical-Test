@@ -15,28 +15,28 @@ use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-use App\Config\OrganiserConfig;
-use App\Controller\Api\OrganiserDeleteController;
-use App\Dto\OrganiserDto;
-use App\State\OrganiserCreateProcessor;
-use App\State\OrganiserProvider;
-use App\State\OrganisersProvider;
-use App\State\OrganiserUpdateProcessor;
+use App\Config\TicketConfig;
+use App\Controller\Api\TicketDeleteController;
+use App\Dto\TicketDto;
+use App\State\TicketCreateProcessor;
+use App\State\TicketProvider;
+use App\State\TicketsProvider;
+use App\State\TicketUpdateProcessor;
 
 #[ApiResource(
     operations: [
         new Get(
-            name: 'organiser_list',
-            provider: OrganisersProvider::class,
+            name: 'ticket_list',
+            provider: TicketsProvider::class,
             normalizationContext: [
                 'groups' => [
-                    OrganiserConfig::OUTPUT_LIST,
+                    TicketConfig::OUTPUT_LIST,
                 ],
                 'skip_null_values' => false,
             ],
             openapiContext: [
-                'summary'     => 'List organisers.',
-                'description' => 'List organisers.',
+                'summary'     => 'List tickets.',
+                'description' => 'List tickets.',
                 'parameters'  => [
                     [
                         'name'        => 'limit',
@@ -45,7 +45,7 @@ use App\State\OrganiserUpdateProcessor;
                         'type'        => 'integer',
                         'schema'      => [
                             'type'    => 'integer',
-                            'default' => OrganiserConfig::OUTPUT_LIST_LIMIT,
+                            'default' => TicketConfig::OUTPUT_LIST_LIMIT,
                         ],                        
                         'description' => 'Maximum number of results.',
                     ],
@@ -56,7 +56,7 @@ use App\State\OrganiserUpdateProcessor;
                         'type'        => 'integer',
                         'schema'      => [
                             'type'    => 'integer',
-                            'default' => OrganiserConfig::OUTPUT_LIST_OFFSET,
+                            'default' => TicketConfig::OUTPUT_LIST_OFFSET,
                         ],                        
                         'description' => 'Starting point.',
                     ],
@@ -64,24 +64,24 @@ use App\State\OrganiserUpdateProcessor;
             ],
         ),
         new Get(
-            name: 'organiser_get',
-            uriTemplate: '/organisers/{id}',
+            name: 'ticket_get',
+            uriTemplate: '/tickets/{id}',
             uriVariables: [
                 'id' => new Link(
-                    fromClass: OrganiserDto::class,
+                    fromClass: TicketDto::class,
                     fromProperty: 'id'
                 ),
             ],
-            provider: OrganiserProvider::class,
+            provider: TicketProvider::class,
             normalizationContext: [
                 'groups' => [
-                    OrganiserConfig::OUTPUT,
+                    TicketConfig::OUTPUT,
                 ],
                 'skip_null_values' => false,
             ],
             openapiContext: [
-                'summary'     => 'Single organiser data.',
-                'description' => 'Single organiser data.',
+                'summary'     => 'Single ticket data.',
+                'description' => 'Single ticket data.',
                 'parameters'  => [
                     [
                         'name'     => 'id',
@@ -96,61 +96,60 @@ use App\State\OrganiserUpdateProcessor;
             ],
         ),
         new Post(
-            name: 'organiser_create',
-            processor: OrganiserCreateProcessor::class,
+            name: 'ticket_create',
+            processor: TicketCreateProcessor::class,
             normalizationContext: [
                 'groups' => [
-                    OrganiserConfig::OUTPUT,
+                    TicketConfig::OUTPUT,
                 ],
                 'skip_null_values' => false,
             ],
             denormalizationContext: [
                 'groups' => [
-                    OrganiserConfig::INPUT,
+                    TicketConfig::INPUT,
                 ],
             ],
             validationContext: [
                 'groups' => [
-                    OrganiserConfig::VALID,
-                    OrganiserConfig::VALID_CREATE,
-                    OrganiserConfig::VALID_UPDATE,
+                    TicketConfig::VALID_CREATE,
+                    TicketConfig::VALID,
                 ],
             ],
             openapiContext: [
-                'summary'     => 'Create a new organiser.',
-                'description' => 'Create a new organiser.',
+                'summary'     => 'Create a new ticket.',
+                'description' => 'Create a new ticket.',
             ],
         ),
         new Put(
-            name: 'organiser_update',
-            uriTemplate: '/organisers/{id}',
+            name: 'ticket_update',
+            uriTemplate: '/tickets/{id}',
             uriVariables: [
                 'id' => new Link(
-                    fromClass: OrganiserDto::class,
+                    fromClass: TicketDto::class,
                     fromProperty: 'id'
                 ),
             ],
             read: false,
-            processor: OrganiserUpdateProcessor::class,
+            processor: TicketUpdateProcessor::class,
             normalizationContext: [
                 'groups' => [
-                    OrganiserConfig::OUTPUT,
+                    TicketConfig::OUTPUT,
                 ],
                 'skip_null_values' => false,
             ],
             denormalizationContext: [
                 'groups' => [
-                    OrganiserConfig::INPUT,
+                    TicketConfig::INPUT,
                 ],
             ],
             validationContext: [
                 'groups' => [
-                    OrganiserConfig::VALID,
+                    TicketConfig::VALID,
                 ],
             ],
             openapiContext: [
-                'summary'     => 'Update an existing organiser.',
-                'description' => 'Update an existing organiser.',
+                'summary'     => 'Update an existing ticket.',
+                'description' => 'Update an existing ticket.',
                 'parameters'  => [
                     [
                         'name'     => 'id',
@@ -165,19 +164,19 @@ use App\State\OrganiserUpdateProcessor;
             ],
         ),
         new Delete(
-            name: 'organiser_delete',
-            uriTemplate: '/organisers/{id}',
+            name: 'ticket_delete',
+            uriTemplate: '/tickets/{id}',
             uriVariables: [
                 'id' => new Link(
-                    fromClass: OrganiserDto::class,
+                    fromClass: TicketDto::class,
                     fromProperty: 'id'
                 ),
             ],
-            controller: OrganiserDeleteController::class,
+            controller: TicketDeleteController::class,
             read: false,
             openapiContext: [
-                'summary'     => 'Delete an existing organiser.',
-                'description' => 'Delete an existing organiser.',
+                'summary'     => 'Delete an existing ticket.',
+                'description' => 'Delete an existing ticket.',
                 'parameters'  => [
                     [
                         'name'     => 'id',
@@ -194,10 +193,10 @@ use App\State\OrganiserUpdateProcessor;
     ],
 )]
 
-final class Organiser
+final class Ticket
 {
     /**
-     * @var OrganiserDto[]
+     * @var TicketDto[]
      */
     #[ApiProperty(
         builtinTypes: [
@@ -207,26 +206,26 @@ final class Organiser
                 collectionValueType: [
                     new Type(
                         builtinType: Type::BUILTIN_TYPE_OBJECT,
-                        class: OrganiserDto::class,
+                        class: TicketDto::class,
                     ),
                 ],
             ),
         ],
     )]
     #[Groups([
-        OrganiserConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT_LIST,
     ])]
-    public array $organisers = [];
+    public array $tickets = [];
 
     #[Groups([
-        OrganiserConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT_LIST,
     ])]
-    public int $organisersCount = 0;
+    public int $ticketsCount = 0;
 
     #[Assert\Valid]
     #[Groups([
-        OrganiserConfig::INPUT,
-        OrganiserConfig::OUTPUT,
+        TicketConfig::INPUT,
+        TicketConfig::OUTPUT,
     ])]
-    public ?OrganiserDto $organiser = null;
+    public ?TicketDto $ticket = null;
 }

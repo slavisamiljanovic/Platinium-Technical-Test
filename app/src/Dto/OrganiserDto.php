@@ -43,6 +43,7 @@ final class OrganiserDto
     #[Assert\NotBlank(
         groups: [
             OrganiserConfig::VALID_CREATE,
+            OrganiserConfig::VALID_UPDATE,
         ]
     )]
     #[Groups([
@@ -64,6 +65,7 @@ final class OrganiserDto
     #[Assert\NotBlank(
         groups: [
             OrganiserConfig::VALID_CREATE,
+            OrganiserConfig::VALID_UPDATE,
         ]
     )]
     #[Groups([

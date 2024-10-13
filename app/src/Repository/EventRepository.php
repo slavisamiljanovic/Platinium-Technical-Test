@@ -71,4 +71,14 @@ class EventRepository extends ServiceEntityRepository
         return $result;
     }
 
+    /**
+     * @param  int[]   $eventsList
+     * @return Event[]
+     */
+    public function findEventsBy(array $eventsList): array
+    {
+        $events = $this->findBy(['id' => $eventsList]);
+        return $events;
+    }
+
 }

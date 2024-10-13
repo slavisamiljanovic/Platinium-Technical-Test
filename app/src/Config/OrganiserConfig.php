@@ -22,5 +22,6 @@ final class OrganiserConfig
 
     public const VALID        = 'OrganiserValid';
     public const VALID_CREATE = 'OrganiserValidCreate';
+    public const VALID_UPDATE = 'OrganiserValidUpdate';
 
 }

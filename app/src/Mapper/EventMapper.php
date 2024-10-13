@@ -24,7 +24,7 @@ class EventMapper
         $result->setIsActive($dto->isActive);
 
         if ($dto->description !== null) {
-            $result->setDescription($dto->description);
+            $result->setDescription($dto->description !== '' ? $dto->description : null);
         }
         return $result;
     }
@@ -44,6 +44,25 @@ class EventMapper
             $result->organiser = $this->organiserMapper->mapEntityToDto($entity->getOrganiser());
         }
 
+        return $result;
+    }
+
+    public function mapEntityToInt(Event $event): int
+    {
+        return (int) $event->getId();
+    }
+
+    /**
+     * @param  iterable<Event> $events
+     * @return int[]
+     */
+    public function mapEntitiesToIntArray(iterable $events): array
+    {
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = $this->mapEntityToInt($event);
+        }
+        sort($result);
         return $result;
     }
 

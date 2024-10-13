@@ -7,7 +7,6 @@ namespace App\Service;
 use App\Dto\EventDto;
 use App\Entity\Organiser;
 use App\Entity\Event;
-use App\Exception\ForbiddenException;
 use App\Exception\NotFoundException;
 use App\Mapper\EventMapper;
 use App\Mapper\OrganiserMapper;
@@ -41,6 +40,7 @@ class EventService
 
     private function save(Organiser $organiser, EventDto $data, ?Event $event = null): Event
     {
+        // @todo-Slavisa: Move setOrganiser() to Mapper.
         $result = $this->eventMapper->mapDtoToEntity($data, $event);
         $result->setOrganiser($organiser);
         $this->eventRepository->save($result);
