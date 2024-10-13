@@ -8,12 +8,12 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
-use App\Config\OrganiserConfig;
-use App\Repository\OrganiserRepository;
+use App\Config\EventConfig;
+use App\Repository\EventRepository;
 
-#[ORM\Entity(repositoryClass: OrganiserRepository::class)]
-#[ORM\Table(name: 'organisers')]
-class Organiser
+#[ORM\Entity(repositoryClass: EventRepository::class)]
+#[ORM\Table(name: 'events')]
+class Event
 {
 
     #[ORM\Id]
@@ -22,26 +22,32 @@ class Organiser
     private ?int $id = null;
 
     #[ORM\Column(
-        length: OrganiserConfig::NAME_LENGTH,
+        length: EventConfig::NAME_LENGTH,
     )]
     private string $name;
 
     #[ORM\Column(
-        length: OrganiserConfig::CITY_LENGTH,
-    )]
-    private string $city;
-
-    #[ORM\Column(
-        length: OrganiserConfig::PHONE_LENGTH,
-        nullable: true,
-    )]
-    private ?string $phone = null;
-
-    #[ORM\Column(
-        length: OrganiserConfig::DESCRIPTION_LENGTH,
+        length: EventConfig::DESCRIPTION_LENGTH,
         nullable: true,
     )]
     private ?string $description = null;
+
+    #[ORM\Column(
+        type: 'boolean',
+        options: [
+            'default' => true,
+        ],
+    )]
+    private bool $isActive = true;
+
+    #[ORM\ManyToOne(targetEntity: Organiser::class)]
+    #[ORM\JoinColumn(
+        nullable: false,
+        name: 'organiser_id',
+        referencedColumnName: 'id',
+        onDelete: 'CASCADE',
+    )]
+    private ?Organiser $organiser = null;
 
     #[Gedmo\Timestampable(on: 'create')]
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
@@ -68,30 +74,6 @@ class Organiser
         return $this;
     }
 
-    public function getCity(): string
-    {
-        return $this->city;
-    }
-
-    public function setCity(string $city): self
-    {
-        $this->city = $city;
-
-        return $this;
-    }
-
-    public function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    public function setPhone(?string $phone): self
-    {
-        $this->phone = $phone;
-
-        return $this;
-    }
-
     public function getDescription(): ?string
     {
         return $this->description;
@@ -100,6 +82,30 @@ class Organiser
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function getIsActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(?bool $isActive): self
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getOrganiser(): ?Organiser
+    {
+        return $this->organiser;
+    }
+
+    public function setOrganiser(?Organiser $organiser): self
+    {
+        $this->organiser = $organiser;
 
         return $this;
     }

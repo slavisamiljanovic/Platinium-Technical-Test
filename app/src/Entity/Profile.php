@@ -17,8 +17,8 @@ class Profile
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private int $id;
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
     #[ORM\Column(
         length: ProfileConfig::USERNAME_LENGTH,

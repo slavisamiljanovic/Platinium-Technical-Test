@@ -11,6 +11,7 @@ api_platform:
         App\Exception\ForbiddenException: 403
         App\Exception\NotFoundException: 404
         App\Exception\UnauthorizedException: 401
+        App\Exception\InvalidInputException: 400
     swagger:
         api_keys:
             JWT:

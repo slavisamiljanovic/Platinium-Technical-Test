@@ -11,44 +11,32 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Validator\Constraints as Assert;
 
-use App\Config\OrganiserConfig;
 use App\Config\EventConfig;
 use App\Config\DateTimeConfig;
 
-final class OrganiserDto
+final class EventDto
 {
     #[ApiProperty(identifier: true)]
 
-    #[Assert\NotNull(
-        groups: [
-            EventConfig::VALID_CREATE,
-            EventConfig::VALID_UPDATE,
-        ]
-    )]
     #[Groups([
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
-        EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
     ])]
     public ?int $id = null;
 
     #[Assert\Length(
-        max: OrganiserConfig::NAME_LENGTH,
+        max: EventConfig::NAME_LENGTH,
         groups: [
-            OrganiserConfig::VALID,
+            EventConfig::VALID,
         ],
     )]
     #[Assert\NotBlank(
         groups: [
-            OrganiserConfig::VALID_CREATE,
+            EventConfig::VALID_CREATE,
+            EventConfig::VALID_UPDATE,
         ]
     )]
     #[Groups([
-        OrganiserConfig::INPUT,
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
         EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
@@ -56,61 +44,63 @@ final class OrganiserDto
     public string $name;
 
     #[Assert\Length(
-        max: OrganiserConfig::CITY_LENGTH,
+        max: EventConfig::DESCRIPTION_LENGTH,
         groups: [
-            OrganiserConfig::VALID,
-        ],
-    )]
-    #[Assert\NotBlank(
-        groups: [
-            OrganiserConfig::VALID_CREATE,
-        ]
-    )]
-    #[Groups([
-        OrganiserConfig::INPUT,
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
-        EventConfig::OUTPUT,
-        EventConfig::OUTPUT_LIST,
-    ])]
-    public string $city;
-
-    #[Assert\Length(
-        max: OrganiserConfig::PHONE_LENGTH,
-        groups: [
-            OrganiserConfig::VALID,
+            EventConfig::VALID,
         ],
     )]
     #[Groups([
-        OrganiserConfig::INPUT,
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
-        EventConfig::OUTPUT,
-        EventConfig::OUTPUT_LIST,
-    ])]
-    public ?string $phone = null;
-
-    #[Assert\Length(
-        max: OrganiserConfig::DESCRIPTION_LENGTH,
-        groups: [
-            OrganiserConfig::VALID,
-        ],
-    )]
-    #[Groups([
-        OrganiserConfig::INPUT,
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
+        EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
     ])]
     public ?string $description = null;
 
+    #[Assert\NotNull(
+        groups: [
+            EventConfig::VALID_CREATE,
+            EventConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\Type(
+        type: 'bool',
+        groups: [
+            EventConfig::VALID_CREATE,
+            EventConfig::VALID_UPDATE,
+        ]
+    )]    
+    #[Groups([
+        EventConfig::INPUT,
+        EventConfig::OUTPUT,
+        EventConfig::OUTPUT_LIST,
+    ])]
+    public bool $isActive = true;
+
+    #[Assert\Valid(
+        groups: [
+            EventConfig::VALID_CREATE,
+            EventConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            EventConfig::VALID_CREATE,
+            EventConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Groups([
+        EventConfig::INPUT,
+        EventConfig::OUTPUT,
+        EventConfig::OUTPUT_LIST,
+    ])]
+    public ?OrganiserDto $organiser;
+
     #[Context([
         DateTimeNormalizer::FORMAT_KEY => DateTimeConfig::FORMAT,
     ])]
     #[Groups([
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT,
+        EventConfig::OUTPUT_LIST,
     ])]
     public DateTimeImmutable $createdAt;
 
@@ -118,8 +108,8 @@ final class OrganiserDto
         DateTimeNormalizer::FORMAT_KEY => DateTimeConfig::FORMAT,
     ])]
     #[Groups([
-        OrganiserConfig::OUTPUT,
-        OrganiserConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT,
+        EventConfig::OUTPUT_LIST,
     ])]
     public DateTimeImmutable $updatedAt;
 

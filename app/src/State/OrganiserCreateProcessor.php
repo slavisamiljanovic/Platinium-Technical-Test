@@ -9,6 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 
 use App\ApiResource\Organiser;
 use App\Service\OrganiserService;
+use App\Exception\InvalidInputException;
 
 /**
  * @implements ProcessorInterface<Organiser, Organiser>
@@ -29,9 +30,14 @@ class OrganiserCreateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         $result = new Organiser();
+
         if ($data->organiser !== null) {
             $result->organiser = $this->service->createOrganiser($data->organiser);
+
+        } else {
+            throw new InvalidInputException('The organiser cannot be null.');
         }
+
         return $result;
     }
 
