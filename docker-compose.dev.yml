@@ -1,0 +1,62 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Backend-API.
+  # ----------------------------------------------------------------------------
+  app:
+    build:
+      target: app_dev
+    volumes:
+      - ./app:/var/www/html
+      ### Use var directory to add necessary configs such as xdebug
+      # - ./var/app/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      ### Uncomment below to use your composer cache
+      ### See: composer config -gl | grep 'cache-dir'
+      # - $HOME/.cache/composer:/home/$APP_USER/.composer/cache
+    extra_hosts:
+      ### Ensure that host.docker.internal is correctly defined on Linux
+      - host.docker.internal:host-gateway
+  # ----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # Database.
+  # ----------------------------------------------------------------------------
+  db:
+    ports:
+      - 3306:3306
+  # ----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # phpMyAdmin.
+  # ----------------------------------------------------------------------------
+  phpmyadmin-backend-api:
+    image: phpmyadmin/phpmyadmin
+    container_name: app-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - ${PHPMYADMIN_PORT:-58090}:80
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - db
+    networks:
+      - backend
+  # ----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # NGINX.
+  # ----------------------------------------------------------------------------
+  proxy:
+    volumes:
+      - ./app/public:/var/www/html/public
+  # ----------------------------------------------------------------------------
+
+volumes:
+  technical-test-db-data:
+    ### Use var directory to store db data
+    # driver: local
+    # driver_opts:
+    #   o: bind
+    #   type: none
+    #   device: ./var/db

@@ -1,0 +1,18 @@
+api_platform:
+    title: 'Technical Test - Tickets System'
+    description: 'This is the API for managing tickets, events and organizers.'
+    version: '1.0.0'
+    formats:
+        json:
+            mime_types: ['application/json']
+        html:
+            mime_types: ['text/html']
+    exception_to_status:
+        App\Exception\ForbiddenException: 403
+        App\Exception\NotFoundException: 404
+        App\Exception\UnauthorizedException: 401
+    swagger:
+        api_keys:
+            JWT:
+                name: Authorization
+                type: header

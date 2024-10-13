@@ -1,0 +1,71 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Backend-API.
+  # ----------------------------------------------------------------------------
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: app_prod
+      args:
+        - APP_USER=${APP_USER:-app}
+        - APP_USER_ID=${APP_USER_ID:-1000}
+    container_name: app-backend-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql://root:root@db:3306/${DB_NAME:-db-technical-test}?serverVersion=5.7.44&charset=utf8mb4
+      # - DATABASE_URL=mysql://${DB_USER:-db-technical-test}:${DB_PSWD:-db-technical-test}@db:3306/${DB_NAME:-db-technical-test}?serverVersion=5.7.44&charset=utf8mb4
+    depends_on:
+      - db
+    networks:
+      - frontend
+      - backend
+  # ----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # Database.
+  # ----------------------------------------------------------------------------
+  db:
+    image: mysql:5.7
+    container_name: app-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=${DB_NAME:-db-technical-test}
+      - LANG=C.UTF_8
+      - MYSQL_USER=root       # ${DB_USER:-db-technical-test}
+      - MYSQL_PASSWORD=root   # ${DB_PSWD:-db-technical-test}
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - technical-test-db-data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - backend
+  # ----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # NGINX.
+  # ----------------------------------------------------------------------------
+  proxy:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: proxy
+      args:
+        - APP_USER=${APP_USER:-app}
+        - APP_USER_ID=${APP_USER_ID:-1000}
+    container_name: app-web
+    restart: unless-stopped
+    depends_on:
+      - app
+    networks:
+      - frontend
+    ports:
+      - ${APP_PORT:-58080}:58080
+  # ----------------------------------------------------------------------------
+
+volumes:
+  technical-test-db-data:
+
+networks:
+  backend:
+  frontend:

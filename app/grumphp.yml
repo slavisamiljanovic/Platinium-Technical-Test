@@ -1,0 +1,7 @@
+grumphp:
+  tasks:
+    phpcs:
+      standard: PSR12
+    phpmd: null
+    phpstan:
+      level: max
