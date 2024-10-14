@@ -102,7 +102,7 @@ RUN set -eux; \
 
 
 # Use the official Node.js image as the base.
-FROM node:16-alpine AS vue-app
+FROM node:22-alpine AS vue-app
 
 # Set working directory inside the container.
 WORKDIR /app
