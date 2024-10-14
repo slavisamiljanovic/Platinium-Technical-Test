@@ -43,6 +43,33 @@ services:
   # ----------------------------------------------------------------------------
 
   # ----------------------------------------------------------------------------
+  # Frontend Vue-App.
+  # ----------------------------------------------------------------------------
+  vue-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: vue-app
+      args:
+        - APP_USER=${APP_USER:-app}
+        - APP_USER_ID=${APP_USER_ID:-1000}
+    container_name: app-frontend
+    restart: unless-stopped
+    depends_on:
+      - app
+    volumes:
+      - ./app/vue-app:/app
+    ports:
+      - "8080:8080"
+    networks:
+      - frontend
+      - backend
+      # - vue-app-network
+    stdin_open: true  # Keep STDIN open so you can run interactive commands like 'vue create'.
+    tty: true         # Allocate a pseudo-TTY for interaction.
+  # ----------------------------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
   # NGINX.
   # ----------------------------------------------------------------------------
   proxy:
@@ -69,3 +96,5 @@ volumes:
 networks:
   backend:
   frontend:
+#  vue-app-network:
+#    driver: bridge

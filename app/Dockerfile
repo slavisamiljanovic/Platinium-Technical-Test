@@ -82,13 +82,13 @@ RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini && \
 ARG APP_USER
 USER ${APP_USER}
 
-# prevent the reinstallation of vendors at every changes in the source code
+# Prevent the re-installation of vendors at every changes in the source code.
 COPY --chown=${APP_USER} composer.* symfony.* ./
 RUN set -eux; \
     composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress; \
     composer clear-cache
 
-# copy sources
+# Copy sources.
 COPY --chown=${APP_USER} . .
 RUN rm -Rf docker/
 
@@ -98,6 +98,28 @@ RUN set -eux; \
     composer dump-env prod; \
     composer run-script --no-dev post-install-cmd; \
     sync
+
+
+
+# Use the official Node.js image as the base.
+FROM node:16-alpine AS vue-app
+
+# Set working directory inside the container.
+WORKDIR /app
+
+ARG APP_USER
+ARG APP_USER_ID
+RUN adduser --disabled-password -u ${APP_USER_ID} ${APP_USER} && \
+    chown ${APP_USER}:${APP_USER} -R /app
+
+ARG APP_USER
+USER ${APP_USER}
+    
+# Expose port 8080 for Vue dev server.
+EXPOSE 8080
+
+# Default command: Run shell to allow interactive commands.
+CMD [ "sh" ]
 
 
 
@@ -115,3 +137,5 @@ WORKDIR /var/www/html/public
 
 COPY --from=app_prod /var/www/html/public .
 COPY docker/proxy/default.conf /etc/nginx/conf.d/default.conf
+
+
