@@ -6,7 +6,7 @@ import {
   LIST_LIMIT,
   LIST_OFFSET
 } from './constants'
-import { useHelper } from './helpers'
+import { useHelper, TokenExpiration } from './helpers'
 import { LoggerService } from '@/plugins/services/logger'
 
 // Logger service.
@@ -16,7 +16,8 @@ const loggerService = new LoggerService()
 const {
   loaderStartLoading,
   loaderStopLoading,
-  isLoggedIn
+  isLoggedIn,
+  isTokenAboutToExpire
 } = useHelper()
 
 // Get toast interface.
@@ -28,6 +29,7 @@ export default createStore({
     apiURL: API_DOMAIN + '/api/',
     token: localStorage.getItem('token') || '',
     user: {},
+    refreshTimeoutId: null,
     eventsFeed: {},
     organisersFeed: {}
   },
@@ -58,6 +60,15 @@ export default createStore({
       state.token = ''
       state.user = {}
       localStorage.removeItem('token')
+    },
+    SET_REFRESH_TIMEOUT_ID (state, timeoutId) {
+      state.refreshTimeoutId = timeoutId
+    },
+    CLEAR_REFRESH_TIMEOUT (state) {
+      if (state.refreshTimeoutId) {
+        clearTimeout(state.refreshTimeoutId)
+        state.refreshTimeoutId = null
+      }
     },
     FETCH_EVENTS_FEED (state, data) {
       state.eventsFeed = data
@@ -94,6 +105,9 @@ export default createStore({
               // Update Vuex state with user data and user token.
               this.commit('AUTH_SUCCESS', { token, user })
 
+              // Start token fefresh timer.
+              this.dispatch('startTokenRefreshTimer')
+
               // End loading.
               loaderStopLoading()
 
@@ -109,11 +123,64 @@ export default createStore({
       })
     },
     logout ({ commit }) {
+      // Clear user login data.
       commit('USER_LOGOUT')
+
+      // Clear any existing timer(s).
+      commit('CLEAR_REFRESH_TIMEOUT')
     },
     tokenExpired ({ commit }) {
       commit('USER_LOGOUT')
       toast.warning('Your token has expired. Please log in again.')
+    },
+    startTokenRefreshTimer ({ state, commit, dispatch }) {
+      // Clear any existing timer(s).
+      commit('CLEAR_REFRESH_TIMEOUT')
+      if (!state.token) {
+        return
+      }
+      const tokenExpiration: TokenExpiration = isTokenAboutToExpire(state.token)
+      if (!tokenExpiration.isAboutToExpire && tokenExpiration.refreshTime > 0) {
+        const timeoutId = setTimeout(
+          () => {
+            dispatch('refreshToken')
+          },
+          tokenExpiration.refreshTime * 1000
+        )
+        // Store the timeout ID in the state.
+        commit('SET_REFRESH_TIMEOUT_ID', timeoutId)
+      }
+    },
+    refreshToken () {
+      return new Promise((resolve, reject) => {
+        axios(
+          {
+            url: this.state.apiURL + 'user',
+            method: 'GET',
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // The API responds with a user data upon successful login.
+              loggerService.log('$store.dispatch(refreshToken) -> response', { logType: 'debug', logData: response })
+              const { user } = response.data
+              const token = user.token
+
+              // Store the token in Vuex and localStorage.
+              // Update Vuex state with user data and user token.
+              this.commit('AUTH_SUCCESS', { token, user })
+
+              // Start token fefresh timer.
+              this.dispatch('startTokenRefreshTimer')
+
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            reject(error)
+          })
+      })
     },
     fetchTickets (_, requestParams) {
       // Start loading.

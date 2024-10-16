@@ -60,7 +60,7 @@ class TicketRepository extends ServiceEntityRepository
     {
         $queryBuilder = $this->createTicketsQueryBuilder();
         $queryBuilder->select('t');
-        $queryBuilder->orderBy('t.createdAt', 'DESC');
+        $queryBuilder->orderBy('t.updatedAt', 'DESC');
         $queryBuilder->setFirstResult($offset);
         $queryBuilder->setMaxResults($limit);
         /** @var Ticket[] */

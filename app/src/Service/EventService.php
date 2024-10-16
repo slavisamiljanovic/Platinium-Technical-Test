@@ -40,7 +40,6 @@ class EventService
 
     private function save(Organiser $organiser, EventDto $data, ?Event $event = null): Event
     {
-        // @todo-Slavisa: Move setOrganiser() to Mapper.
         $result = $this->eventMapper->mapDtoToEntity($data, $event);
         $result->setOrganiser($organiser);
         $this->eventRepository->save($result);

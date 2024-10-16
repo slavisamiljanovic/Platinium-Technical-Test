@@ -9,7 +9,7 @@
     <nav class="d-flex">
       <router-link class="nav-link" to="/">Home</router-link>
       <router-link v-if="isUserLoggedIn" class="nav-link" to="/dashboard">Dashboard</router-link>
-      <router-link v-if="isUserLoggedIn" :class="{'nav-link': true, 'router-link-exact-active': isActiveRoute}" to="/tickets">Tickets</router-link>
+      <router-link v-if="isUserLoggedIn" :class="{'nav-link': true, 'router-link-exact-active': isActiveRoute}" to="/tickets/1">Tickets</router-link>
       <router-link v-if="isUserLoggedIn" class="nav-link" to="/events">Events</router-link>
       <router-link v-if="isUserLoggedIn" class="nav-link" to="/organisers">Organisers</router-link>
       <router-link class="nav-link" to="/about">About</router-link>

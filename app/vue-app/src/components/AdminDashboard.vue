@@ -7,7 +7,7 @@
           <div class="card-body">
             <h5 class="card-title">Manage Tickets <span v-if="ticketsCount !== null">({{ ticketsCount }})</span></h5>
             <p class="card-text">Create, edit, or delete tickets.</p>
-            <router-link to="/tickets" class="btn btn-primary">Go to Tickets</router-link>
+            <router-link to="/tickets/1" class="btn btn-primary">Go to Tickets</router-link>
           </div>
         </div>
       </div>

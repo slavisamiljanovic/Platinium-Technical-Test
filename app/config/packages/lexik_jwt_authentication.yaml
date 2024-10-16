@@ -5,4 +5,4 @@ lexik_jwt_authentication:
     token_extractors:
         authorization_header:
             prefix: Token
-    token_ttl: 43200  # 12 hours
+    token_ttl: 7200 # 2 hours

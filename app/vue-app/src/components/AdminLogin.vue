@@ -16,7 +16,7 @@
           ref="emailInput"
         />
         <span class="error-placeholder">
-          <span v-if="emailError" class="error">{{ emailError }}</span>
+          <span v-if="emailError" class="error text-danger">{{ emailError }}</span>
         </span>
       </div>
       <div class="mb-3">
@@ -31,7 +31,7 @@
           @blur="validatePassword"
         />
         <span class="error-placeholder">
-          <span v-if="passwordError" class="error">{{ passwordError }}</span>
+          <span v-if="passwordError" class="error text-danger">{{ passwordError }}</span>
         </span>
       </div>
       <span class="error-placeholder response-error mt-0 mb-4">

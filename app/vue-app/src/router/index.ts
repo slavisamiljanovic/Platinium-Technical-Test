@@ -9,12 +9,13 @@ import {
   AdminLoginView
 } from '@/views'
 import store from '@/store'
-import { useHelper } from '@/store/helpers'
+import { useHelper, TokenExpiration } from '@/store/helpers'
 
 // Destructure methods from the helper.
 const {
   isLoggedIn,
-  isTokenExpired
+  isTokenExpired,
+  isTokenAboutToExpire
 } = useHelper()
 
 const routes: Array<RouteRecordRaw> = [
@@ -46,7 +47,7 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
-    path: '/tickets/:currentPage?',
+    path: '/tickets/:currentPage',
     name: 'tickets',
     component: () => import(/* webpackChunkName: "events" */ '@/views/tickets/TicketsListView.vue'),
     meta: {
@@ -101,16 +102,26 @@ router.beforeEach(
     const defaultTitle = 'Technical Test - Tickets System'
     document.title = (to.meta?.title as string) + ' | ' + defaultTitle || defaultTitle
 
+    const token = store.state.token
+    const isUserLoggedIn = isLoggedIn(token)
+    const isUserTokenExpired = isTokenExpired(token)
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
     const isLoginPage = to.matched.some(record => record.path === '/login')
+
+    // A case to refresh the token immediately if it is about to expire.
+    const tokenExpiration: TokenExpiration = isTokenAboutToExpire(token)
+    if (tokenExpiration.isAboutToExpire) {
+      store.dispatch('refreshToken')
+    }
+
+    // A case for removing a token when it has expired and notifying the user.
+    if (token && isUserTokenExpired) {
+      store.dispatch('tokenExpired')
+    }
+
     if (requiresAuth || isLoginPage) {
-      const token = store.state.token
-      const isUserLoggedIn = isLoggedIn(token)
-      const isUserTokenExpired = isTokenExpired(token)
+      // Case for redirecting to appropriate pages based on token state.
       if (!isUserLoggedIn && requiresAuth) {
-        if (isUserTokenExpired) {
-          store.dispatch('tokenExpired')
-        }
         next('/login')
       } else if (isUserLoggedIn && isLoginPage) {
         next('/dashboard')

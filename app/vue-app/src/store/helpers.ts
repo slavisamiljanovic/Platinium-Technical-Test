@@ -1,5 +1,6 @@
 import { jwtDecode } from 'jwt-decode'
 import { LoggerService } from '@/plugins/services/logger'
+import { TIME_BEFORE_TOKEN_EXPIRATION } from './constants'
 
 // Shape of the token payload.
 interface JwtPayload {
@@ -103,7 +104,7 @@ const isObjectEmpty = (obj: any): boolean => {
 
 const isLoggedIn = (token: string): boolean => {
   let result = false
-  loggerService.log('helpers.isLoggedIn() -> token', { logData: token })
+  // loggerService.log('helpers.isLoggedIn() -> token', { logType: 'info', logData: token })
   if (token) {
     result = !isTokenExpired(token)
   }
@@ -116,11 +117,11 @@ const isTokenExpired = (token: string): boolean => {
   const decodedToken = decodeToken(token)
   if (decodedToken && decodedToken.exp) {
     const currentTime = Math.floor(Date.now() / 1000)
-    loggerService.log('helpers.isTokenExpired() -> decodedToken.exp', { logType: 'warn', logData: new Date(decodedToken.exp * 1000) })
-    loggerService.log('helpers.isTokenExpired() -> currentTime', { logType: 'warn', logData: new Date(currentTime * 1000) })
+    // loggerService.log('helpers.isTokenExpired() -> decodedToken.exp', { logType: 'info', logData: new Date(decodedToken.exp * 1000) })
+    // loggerService.log('helpers.isTokenExpired() -> currentTime', { logType: 'info', logData: new Date(currentTime * 1000) })
     result = decodedToken.exp < currentTime
   }
-  loggerService.log('helpers.isTokenExpired()', { logData: result })
+  // loggerService.log('helpers.isTokenExpired()', { logData: result })
   return result
 }
 
@@ -136,6 +137,39 @@ const decodeToken = (token: string): JwtPayload | null => {
   return result
 }
 
+// Shape of the token expiration.
+export interface TokenExpiration {
+  isAboutToExpire: boolean
+  remainingTime: number
+  refreshTime: number
+}
+
+const isTokenAboutToExpire = (token: string): TokenExpiration => {
+  let tokenExpiration: TokenExpiration = {
+    isAboutToExpire: false,
+    remainingTime: 0,
+    refreshTime: 0
+  }
+
+  const decodedToken = decodeToken(token)
+  if (decodedToken && decodedToken.exp) {
+    const currentTime = Math.floor(Date.now() / 1000)
+
+    let isAboutToExpire = false
+    const remainingTime = decodedToken.exp - currentTime
+    const refreshTime = remainingTime - TIME_BEFORE_TOKEN_EXPIRATION
+
+    if (remainingTime >= 0 && remainingTime <= TIME_BEFORE_TOKEN_EXPIRATION) {
+      isAboutToExpire = true
+    }
+
+    tokenExpiration = { isAboutToExpire, remainingTime, refreshTime }
+  }
+
+  loggerService.log('helpers.isTokenAboutToExpire()', { logData: tokenExpiration })
+  return tokenExpiration
+}
+
 export function useHelper () {
   return {
     loaderStartLoading,
@@ -147,6 +181,8 @@ export function useHelper () {
     helperFormatDateTime,
     isObjectEmpty,
     isLoggedIn,
-    isTokenExpired
+    isTokenExpired,
+    decodeToken,
+    isTokenAboutToExpire
   }
 }

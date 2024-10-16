@@ -136,8 +136,6 @@ export default defineComponent({
       this.events = this.$store.state.eventsFeed.events
       this.eventsCount = this.$store.state.eventsFeed.eventsCount
     }
-    console.log('slavisa --> debug --> events: ', this.events)
-    console.log('slavisa --> debug --> events: ', this.eventsCount)
 
     if (!this.isObjectEmpty(this.$store.state.organisersFeed)) {
       this.organisers = this.$store.state.organisersFeed.organisers

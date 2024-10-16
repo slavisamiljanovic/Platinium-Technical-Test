@@ -29,8 +29,8 @@
           <th class="text-start"><a href="#" @click.prevent="sortBy('name')">Name <i :class="getSortClass('name')"></i></a></th>
           <th class="description text-start"><a href="#" @click.prevent="sortBy('description')">Description <i :class="getSortClass('description')"></i></a></th>
           <th class="text-center ticket-events">Events</th>
-          <th class="text-end"><a href="#" @click.prevent="sortBy('created_at')">Created At <i :class="getSortClass('created_at')"></i></a></th>
-          <th class="text-end"><a href="#" @click.prevent="sortBy('updated_at')">Updated At <i :class="getSortClass('updated_at')"></i></a></th>
+          <th class="text-end"><a href="#" @click.prevent="sortBy('createdAt')">Created At <i :class="getSortClass('createdAt')"></i></a></th>
+          <th class="text-end"><a href="#" @click.prevent="sortBy('updatedAt')">Updated At <i :class="getSortClass('updatedAt')"></i></a></th>
           <th class="text-center">Actions</th>
         </tr>
       </thead>
@@ -89,16 +89,17 @@
   <TicketModal
     v-if="isTicketModalOpen"
     :ticket="selectedTicket"
-    :eventsFeed="eventsFeed"
-    :organiserFeed="organiserFeed"
     @close="isTicketModalOpen = false"
     @save="saveEvent"
   />
 </template>
 
 <script>
-import axios from 'axios'
+import { watch, ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { useToast } from 'vue-toastification'
+import axios from 'axios'
 import { useHelper } from '@/store/helpers'
 import { LIST_LIMIT, LIST_OFFSET } from '@/store/constants'
 import TicketModal from './TicketModal.vue'
@@ -110,6 +111,15 @@ export default {
     EventsModal
   },
   setup () {
+    // Access Vuex store.
+    const store = useStore()
+
+    // Access Vue route.
+    const route = useRoute()
+
+    // Access Vue router.
+    const router = useRouter()
+
     // Get toast interface.
     const toast = useToast()
 
@@ -120,43 +130,29 @@ export default {
       handleApiError
     } = useHelper()
 
-    return {
-      toast,
-      helperIsOdd,
-      helperFormatDateTime,
-      handleApiError
-    }
-  },
-  mounted () {
-    // Current page based on route parameter.
-    this.currentPage = Number(this.$route.params.currentPage) || 1
+    const tickets = ref([])
+    const ticketsCount = ref(0)
 
-    // Fetch the paginated tickets list.
-    this.fetchTickets(this.perPage, (this.currentPage - 1) * this.perPage)
+    const selectedTicket = ref(null)
+    const isEventsModalOpen = ref(false)
+    const isTicketModalOpen = ref(false)
 
-    // Fetch and store all events in the Vuex store.
-    this.fetchEventsFeed()
+    const currentPage = ref(1) // Default value for current page number.
+    const perPage = LIST_LIMIT // Number of items per page.
+    const sortKey = ref('updatedAt') // Current column to sort by.
+    const sortOrder = ref('desc') // Sort order: 'asc' or 'desc'.
 
-    // Fetch and store all organisers in the Vuex store.
-    this.fetchOrganisersFeed()
-  },
-  data () {
-    return {
-      tickets: [],
-      ticketsCount: 0,
-      selectedTicket: null,
-      eventsFeed: null,
-      organiserFeed: null,
-      isEventsModalOpen: false,
-      isTicketModalOpen: false,
-      sortKey: 'id', // Current column to sort by.
-      sortOrder: 'asc', // Sort order: 'asc' or 'desc'.
-      currentPage: 1, // Current page number.
-      perPage: LIST_LIMIT // Number of items per page.
-    }
-  },
-  methods: {
-    fetchTickets (limit, offset) {
+    /**
+     * Watchers: Watch for route query changes.
+     */
+    watch(() => route.params.currentPage, (newPage) => {
+      fetchTickets(perPage, (newPage - 1) * perPage)
+    })
+
+    /**
+     * Regular Methods.
+     */
+    const fetchTickets = async (limit, offset) => {
       limit = limit || LIST_LIMIT
       offset = offset || LIST_OFFSET
 
@@ -165,72 +161,174 @@ export default {
         limit,
         offset
       }
-      this.$store.dispatch('fetchTickets', requestParams)
+      await store.dispatch('fetchTickets', requestParams)
         .then(
           (response) => {
-            this.tickets = response.data.tickets
-            this.ticketsCount = response.data.ticketsCount
-            // this.toast.info('Tickets list fetched successfully.')
-            const currentPage = this.currentPage
-            this.$router.push({ name: 'tickets', params: { currentPage } })
+            tickets.value = response.data.tickets
+            ticketsCount.value = response.data.ticketsCount
+            // toast.info('Tickets list fetched successfully.')
           }
         )
         .catch(error => {
           // Handle error response.
-          this.toast.error(this.handleApiError(error, 'Failed to fetch the list of tickets.'))
+          toast.error(handleApiError(error, 'Failed to fetch the list of tickets.'))
         })
-    },
-    fetchTicket (ticketId) {
-      this.$store.dispatch('fetchTicket', ticketId)
+    }
+
+    const fetchTicket = (ticketId) => {
+      store.dispatch('fetchTicket', ticketId)
         .then(
           (response) => {
             const ticket = response.data.ticket
-            this.selectedTicket = { ...ticket }
+            selectedTicket.value = { ...ticket }
             // this.toast.info('Ticket fetched successfully.')
-            this.isEventsModalOpen = true
+            isEventsModalOpen.value = true
           }
         )
         .catch(error => {
           // Handle error response.
           this.toast.error(this.handleApiError(error, 'Failed to fetch the list of tickets.'))
         })
-    },
-    fetchEventsFeed () {
-      this.$store.dispatch('fetchEventsFeed')
-        .then(
-          () => {
-            // this.toast.info('Events feed list fetched successfully.')
-          }
-        )
-        .catch(error => {
-          // Handle error response.
-          this.toast.error(this.handleApiError(error, 'Failed to fetch the events feed list.'))
-        })
-    },
-    fetchOrganisersFeed () {
-      this.$store.dispatch('fetchOrganisersFeed')
-        .then(
-          () => {
-            // this.toast.info('Events feed list fetched successfully.')
-          }
-        )
-        .catch(error => {
-          // Handle error response.
-          this.toast.error(this.handleApiError(error, 'Failed to fetch the organisers feed list.'))
-        })
-    },
-    openModal (ticket, viewEvents) {
+    }
+
+    const openModal = (ticket, viewEvents) => {
       // Clone the ticket or set to NULL for NEW.
-      this.selectedTicket = ticket ? { ...ticket } : null
+      selectedTicket.value = ticket ? { ...ticket } : null
       if (viewEvents) {
         // Fetch entire ticket.
-        this.fetchTicket(this.selectedTicket.id)
+        fetchTicket(selectedTicket.value.id)
       } else {
-        this.isTicketModalOpen = true
+        isTicketModalOpen.value = true
       }
-    },
+    }
+
+    const fetchEventsFeed = () => {
+      store.dispatch('fetchEventsFeed')
+        .then(
+          () => {
+            // toast.info('Events feed list fetched successfully.')
+          }
+        )
+        .catch(error => {
+          // Handle error response.
+          toast.error(this.handleApiError(error, 'Failed to fetch the events feed list.'))
+        })
+    }
+
+    const fetchOrganisersFeed = () => {
+      store.dispatch('fetchOrganisersFeed')
+        .then(
+          () => {
+            // toast.info('Events feed list fetched successfully.')
+          }
+        )
+        .catch(error => {
+          // Handle error response.
+          toast.error(this.handleApiError(error, 'Failed to fetch the organisers feed list.'))
+        })
+    }
+
+    const sortBy = (column) => {
+      if (sortKey.value === column) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+      } else {
+        sortKey.value = column
+        sortOrder.value = 'asc'
+      }
+    }
+
+    const getSortClass = (column) => {
+      if (sortKey.value === column) {
+        return sortOrder.value === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'
+      }
+      return ''
+    }
+
+    const goToPage = (page) => {
+      if (page > 0 && page <= totalPages.value) {
+        currentPage.value = page
+        router.push({ name: 'tickets', params: { currentPage: currentPage.value } })
+      }
+    }
+
+    /**
+     * Computed methods.
+     */
+    const sortedTickets = computed(() => {
+      const sorted = [...tickets.value].sort((a, b) => {
+        const modifier = sortOrder.value === 'asc' ? 1 : -1
+        /*
+        if (this.sortKey === 'events') {
+          return (
+            (a[this.sortKey].length - b[this.sortKey].length) * modifier
+          )
+        }
+        */
+        if (a[sortKey.value] < b[sortKey.value]) return -1 * modifier
+        if (a[sortKey.value] > b[sortKey.value]) return 1 * modifier
+        return 0
+      })
+      return sorted
+    })
+
+    const paginatedTickets = computed(() => {
+      /*
+      const start = (this.currentPage - 1) * this.perPage
+      const end = start + this.perPage
+      return this.sortedTickets.slice(start, end)
+      */
+      return sortedTickets.value
+    })
+
+    const totalPages = computed(() => {
+      return Math.ceil(ticketsCount.value / perPage)
+    })
+
+    /**
+     * onMounted lifecycle hook: Executes when the component is mounted.
+     */
+    onMounted(() => {
+      // Current page based on route parameter.
+      currentPage.value = Number(route.params.currentPage) || 1
+
+      // Fetch the paginated tickets list.
+      fetchTickets(perPage, (currentPage.value - 1) * perPage)
+
+      // Fetch and store all events in the Vuex store.
+      fetchEventsFeed()
+
+      // Fetch and store all organisers in the Vuex store.
+      fetchOrganisersFeed()
+    })
+
+    return {
+      toast,
+      tickets,
+      ticketsCount,
+      currentPage,
+      perPage,
+      sortKey,
+      sortOrder,
+      paginatedTickets,
+      totalPages,
+      sortBy,
+      getSortClass,
+      goToPage,
+      selectedTicket,
+      isEventsModalOpen,
+      isTicketModalOpen,
+      helperIsOdd,
+      helperFormatDateTime,
+      handleApiError,
+      fetchTickets,
+      fetchEventsFeed,
+      fetchOrganisersFeed,
+      openModal
+    }
+  }
+  /*
+  methods: {
     saveEvent (ticket) {
-      console.log('slavisa --> debug --> saveEvent (ticket): ', ticket)
       if (ticket.id) {
         // Edit existing ticket
         const index = this.tickets.findIndex((e) => e.id === ticket.id)
@@ -255,59 +353,8 @@ export default {
           console.error('Error deleting ticket:', error)
         }
       }
-    },
-    sortBy (column) {
-      if (this.sortKey === column) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
-      } else {
-        this.sortKey = column
-        this.sortOrder = 'asc'
-      }
-    },
-    getSortClass (column) {
-      if (this.sortKey === column) {
-        return this.sortOrder === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'
-      }
-      return ''
-    },
-    goToPage (page) {
-      if (page > 0 && page <= this.totalPages) {
-        this.currentPage = page
-        this.fetchTickets(this.perPage, (page - 1) * this.perPage)
-      }
     }
-  },
-  computed: {
-    sortedTickets () {
-      const sorted = [...this.tickets].sort((a, b) => {
-        const modifier = this.sortOrder === 'asc' ? 1 : -1
-        /*
-        if (this.sortKey === 'events') {
-          return (
-            (a[this.sortKey].length - b[this.sortKey].length) * modifier
-          )
-        }
-        */
-        if (a[this.sortKey] < b[this.sortKey]) return -1 * modifier
-        if (a[this.sortKey] > b[this.sortKey]) return 1 * modifier
-        return 0
-      })
-      return sorted
-    },
-    paginatedTickets () {
-      /*
-      const start = (this.currentPage - 1) * this.perPage
-      const end = start + this.perPage
-      return this.sortedTickets.slice(start, end)
-      */
-      return this.sortedTickets
-    },
-    totalPages () {
-      return Math.ceil(this.ticketsCount / this.perPage)
-    }
-  },
-  beforeUnmount () {
-    // Unsubscribe to avoid memory leaks.
   }
+  */
 }
 </script>

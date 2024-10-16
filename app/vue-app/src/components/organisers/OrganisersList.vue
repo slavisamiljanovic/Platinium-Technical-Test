@@ -78,7 +78,6 @@ export default {
   async mounted () {
     // Subscribe to loading state
     helpers.loaderSubscribe((isLoading) => {
-      console.log('slavisa --> debug --> helpers.loaderSubscribe((isLoading): ', isLoading)
       this.isLoading = isLoading
     })
     await this.fetchEvents()
@@ -139,7 +138,6 @@ export default {
       this.isModalOpen = true
     },
     saveEvent (ticket) {
-      console.log('slavisa --> debug --> saveEvent (ticket): ', ticket)
       if (ticket.id) {
         // Edit existing ticket
         const index = this.tickets.findIndex((e) => e.id === ticket.id)
@@ -166,7 +164,6 @@ export default {
       }
     },
     sortBy (column) {
-      console.log('slavisa --> debug: sortBy (column): ', column)
       if (this.sortKey === column) {
         this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
       } else {
@@ -221,7 +218,6 @@ export default {
   },
   computed: {
     sortedEvents () {
-      console.log('slavisa --> debug --> sortedEvents ()')
       const sorted = [...this.tickets].sort((a, b) => {
         const modifier = this.sortOrder === 'asc' ? 1 : -1
         if (this.sortKey === 'tags') {
