@@ -15,7 +15,7 @@ final class TicketConfig
     public const OUTPUT      = 'TicketOutput';
     public const OUTPUT_LIST = 'TicketListOutput';
 
-    public const OUTPUT_LIST_LIMIT  = 50;
+    public const OUTPUT_LIST_LIMIT  = 10;
     public const OUTPUT_LIST_OFFSET = 0;
 
     public const VALID        = 'TicketValid';

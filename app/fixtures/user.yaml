@@ -1,5 +1,5 @@
 App\Entity\User:
-    user{1..9}:
-        email: 'user<current()>\@app.test'
-        password: 'pswd<current()>'
+    user{1..10}:
+        email: 'admin<current()>\@telekod.com'
+        password: 'password<current()>'
         profile: '@profile<current()>'

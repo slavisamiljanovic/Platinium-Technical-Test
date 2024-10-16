@@ -28,8 +28,16 @@ class EventRepository extends ServiceEntityRepository
     private function createEventsQueryBuilder(): QueryBuilder
     {
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        $queryBuilder->from(Event::class, 'e');
-        $queryBuilder->join(Organiser::class, 'o', Join::WITH, 'o.id = e.organiser');
+        $queryBuilder
+            ->from(Event::class, 'e')
+            ->join(Organiser::class, 'o', Join::WITH, 'o.id = e.organiser')
+        ;
+        return $queryBuilder;
+    }
+
+    private function createEventsFeedQueryBuilder(): QueryBuilder
+    {
+        $queryBuilder = $this->createEventsQueryBuilder();
         return $queryBuilder;
     }
 
@@ -55,6 +63,18 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return int
+     */
+    public function countEventsFeed(): int
+    {
+        $queryBuilder = $this->createEventsFeedQueryBuilder();
+        $queryBuilder->select('COUNT(e)');
+        /** @var int */
+        $result = $queryBuilder->getQuery()->getSingleScalarResult();
+        return $result;
+    }
+
+    /**
      * @param  integer $limit
      * @param  integer $offset
      * @return Event[]
@@ -72,12 +92,25 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param  int[]   $eventsList
      * @return Event[]
      */
-    public function findEventsBy(array $eventsList): array
+    public function findEventsFeed(): array
     {
-        $events = $this->findBy(['id' => $eventsList]);
+        $queryBuilder = $this->createEventsFeedQueryBuilder();
+        $queryBuilder->select('e');
+        $queryBuilder->orderBy('e.createdAt', 'DESC');
+        /** @var Event[] */
+        $result = $queryBuilder->getQuery()->getResult();
+        return $result;
+    }
+
+    /**
+     * @param  int[]   $events
+     * @return Event[]
+     */
+    public function findEventsBy(array $events): array
+    {
+        $events = $this->findBy(['id' => $events]);
         return $events;
     }
 

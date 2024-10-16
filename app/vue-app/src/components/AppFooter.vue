@@ -1,6 +1,6 @@
 <template>
   <footer>
-    <p>Copyright &copy; {{ year }} </p>
+    <p class="small-text mt-0 mb-0">Copyright &copy; {{ year }} | Technical Test - Tickets System</p>
   </footer>
 </template>
 

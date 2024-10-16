@@ -21,6 +21,7 @@ use App\Dto\OrganiserDto;
 use App\State\OrganiserCreateProcessor;
 use App\State\OrganiserProvider;
 use App\State\OrganisersProvider;
+use App\State\OrganisersFeedProvider;
 use App\State\OrganiserUpdateProcessor;
 
 #[ApiResource(
@@ -61,6 +62,21 @@ use App\State\OrganiserUpdateProcessor;
                         'description' => 'Starting point.',
                     ],
                 ],
+            ],
+        ),
+        new Get(
+            name: 'organiser_feed',
+            uriTemplate: '/organisers/feed',
+            provider: OrganisersFeedProvider::class,
+            normalizationContext: [
+                'groups' => [
+                    OrganiserConfig::OUTPUT_FEED_LIST,
+                ],
+                'skip_null_values' => false,
+            ],
+            openapiContext: [
+                'summary'     => 'Organiser feed.',
+                'description' => 'Organiser feed.<br>***The API will return ALL organisers.***',
             ],
         ),
         new Get(
@@ -215,11 +231,13 @@ final class Organiser
     )]
     #[Groups([
         OrganiserConfig::OUTPUT_LIST,
+        OrganiserConfig::OUTPUT_FEED_LIST,
     ])]
     public array $organisers = [];
 
     #[Groups([
         OrganiserConfig::OUTPUT_LIST,
+        OrganiserConfig::OUTPUT_FEED_LIST,
     ])]
     public int $organisersCount = 0;
 

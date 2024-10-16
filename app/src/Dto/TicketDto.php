@@ -89,7 +89,7 @@ final class TicketDto
     public DateTimeImmutable $updatedAt;
 
     /**
-     * @var int[]|null
+     * @var int[]
      */
     #[Assert\All(
         constraints: [
@@ -105,6 +105,6 @@ final class TicketDto
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,
     ])]
-    public ?array $eventsList = null;
+    public array $events = [];
 
 }

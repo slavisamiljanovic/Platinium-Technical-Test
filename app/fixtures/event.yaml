@@ -1,0 +1,6 @@
+App\Entity\Event:
+  event_{1..50}:
+    name: '<substr(<sentence(3)>, 0, 50)>'
+    description: <text(200)>
+    isActive: <boolean()>
+    organiser: '@organiser_<numberBetween(1,50)>'

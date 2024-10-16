@@ -14,10 +14,11 @@ final class OrganiserConfig
 
     public const INPUT = 'OrganiserInput';
 
-    public const OUTPUT      = 'OrganiserOutput';
-    public const OUTPUT_LIST = 'OrganiserListOutput';
+    public const OUTPUT           = 'OrganiserOutput';
+    public const OUTPUT_LIST      = 'OrganiserListOutput';
+    public const OUTPUT_FEED_LIST = 'OrganiserFeedListOutput';
 
-    public const OUTPUT_LIST_LIMIT  = 50;
+    public const OUTPUT_LIST_LIMIT  = 10;
     public const OUTPUT_LIST_OFFSET = 0;
 
     public const VALID        = 'OrganiserValid';

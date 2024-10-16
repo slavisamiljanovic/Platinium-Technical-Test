@@ -19,13 +19,13 @@ class TicketMapper
 
     /**
      * @param  Ticket $ticket
-     * @param  int[]  $eventsList
+     * @param  int[]  $events
      * @return void
      */
-    private function setEvents(Ticket $ticket, array $eventsList): void
+    private function setEvents(Ticket $ticket, array $events): void
     {
         $oldEvents = $ticket->getEvents()->map(fn (Event $event) => $event->getId())->getValues();
-        $delEvents = array_diff($oldEvents, $eventsList);
+        $delEvents = array_diff($oldEvents, $events);
 
         if (!empty($delEvents)) {
             foreach ($ticket->getEvents()->filter(fn (Event $event) => in_array($event->getId(), $delEvents)) as $event) {
@@ -33,7 +33,7 @@ class TicketMapper
             }
         }
 
-        $addEvents = array_diff($eventsList, $oldEvents);
+        $addEvents = array_diff($events, $oldEvents);
         if (!empty($addEvents)) {
             $events = $this->eventRepository->findEventsBy($addEvents);
             foreach ($events as $event) {
@@ -52,8 +52,8 @@ class TicketMapper
             $result->setDescription($dto->description !== '' ? $dto->description : null);
         }
 
-        if ($dto->eventsList !== null) {
-            $this->setEvents($result, $dto->eventsList);
+        if ($dto->events !== null) {
+            $this->setEvents($result, $dto->events);
         }
 
         return $result;
@@ -61,14 +61,14 @@ class TicketMapper
 
     public function mapEntityToDto(Ticket $entity): TicketDto
     {
-        $result = new TicketDto();
 
+        $result = new TicketDto();
         $result->id          = $entity->getId();
         $result->name        = $entity->getName();
         $result->description = $entity->getDescription();
-        $result->eventsList  = $this->eventMapper->mapEntitiesToIntArray($entity->getEvents());
+        $result->events      = $this->eventMapper->mapEntitiesToDtoArray($entity->getEvents());
         $result->createdAt   = $entity->getCreatedAt();
-        $result->updatedAt   = $entity->getCreatedAt();
+        $result->updatedAt   = $entity->getUpdatedAt();
 
         return $result;
     }

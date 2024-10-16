@@ -26,7 +26,7 @@ class TicketRepository extends ServiceEntityRepository
     private function createTicketsQueryBuilder(): QueryBuilder
     {
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        $queryBuilder->from(Ticket::class, 'o');
+        $queryBuilder->from(Ticket::class, 't');
         return $queryBuilder;
     }
 
@@ -45,7 +45,7 @@ class TicketRepository extends ServiceEntityRepository
     public function countTickets(): int
     {
         $queryBuilder = $this->createTicketsQueryBuilder();
-        $queryBuilder->select('COUNT(o)');
+        $queryBuilder->select('COUNT(t)');
         /** @var int */
         $result = $queryBuilder->getQuery()->getSingleScalarResult();
         return $result;
@@ -59,8 +59,8 @@ class TicketRepository extends ServiceEntityRepository
     public function findTickets(int $limit, int $offset): array
     {
         $queryBuilder = $this->createTicketsQueryBuilder();
-        $queryBuilder->select('o');
-        $queryBuilder->orderBy('o.createdAt', 'DESC');
+        $queryBuilder->select('t');
+        $queryBuilder->orderBy('t.createdAt', 'DESC');
         $queryBuilder->setFirstResult($offset);
         $queryBuilder->setMaxResults($limit);
         /** @var Ticket[] */

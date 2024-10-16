@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+// use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
@@ -40,7 +40,7 @@ class Ticket
     private \DateTimeImmutable $updatedAt;
 
     /**
-     * @var Collection<int, Event>
+     * @var ArrayCollection<int, Event>
      */
     #[ORM\ManyToMany(
         targetEntity: Event::class,
@@ -58,7 +58,7 @@ class Ticket
         referencedColumnName: 'id',
         onDelete: 'CASCADE'
     )]
-    private Collection $events;
+    private iterable $events;
 
     public function __construct()
     {
@@ -118,10 +118,7 @@ class Ticket
         return $this;
     }
 
-    /**
-     * @return Collection<int, Event>
-     */
-    public function getEvents(): Collection
+    public function getEvents(): iterable
     {
         return $this->events;
     }
@@ -129,14 +126,19 @@ class Ticket
     public function addEvent(Event $event): self
     {
         if (!$this->events->contains($event)) {
-            $this->events->add($event);
+            $this->events[] = $event;
+            $event->addTicket($this);
         }
+
         return $this;
     }
 
     public function removeEvent(Event $event): self
     {
-        $this->events->removeElement($event);
+        if ($this->events->removeElement($event)) {
+            $event->removeTicket($this);
+        }
+
         return $this;
     }
 

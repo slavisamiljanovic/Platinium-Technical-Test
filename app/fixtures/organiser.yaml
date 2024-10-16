@@ -1,0 +1,6 @@
+App\Entity\Organiser:
+  organiser_{1..50}:
+    name: '<substr(<company()>, 0, 50)>'
+    city: '<substr(<city()>, 0, 20)>'
+    phone: '<substr(<phoneNumber()>, 0, 20)>'
+    description: <text(200)>

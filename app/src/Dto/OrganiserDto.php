@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Config\OrganiserConfig;
 use App\Config\EventConfig;
+use App\Config\TicketConfig;
 use App\Config\DateTimeConfig;
 
 final class OrganiserDto
@@ -28,9 +29,11 @@ final class OrganiserDto
     #[Groups([
         OrganiserConfig::OUTPUT,
         OrganiserConfig::OUTPUT_LIST,
+        OrganiserConfig::OUTPUT_FEED_LIST,
         EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public ?int $id = null;
 
@@ -50,9 +53,11 @@ final class OrganiserDto
         OrganiserConfig::INPUT,
         OrganiserConfig::OUTPUT,
         OrganiserConfig::OUTPUT_LIST,
+        OrganiserConfig::OUTPUT_FEED_LIST,
         EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public string $name;
 
@@ -74,6 +79,7 @@ final class OrganiserDto
         OrganiserConfig::OUTPUT_LIST,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public string $city;
 
@@ -89,6 +95,7 @@ final class OrganiserDto
         OrganiserConfig::OUTPUT_LIST,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public ?string $phone = null;
 
@@ -113,6 +120,7 @@ final class OrganiserDto
     #[Groups([
         OrganiserConfig::OUTPUT,
         OrganiserConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public DateTimeImmutable $createdAt;
 
@@ -122,6 +130,7 @@ final class OrganiserDto
     #[Groups([
         OrganiserConfig::OUTPUT,
         OrganiserConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public DateTimeImmutable $updatedAt;
 

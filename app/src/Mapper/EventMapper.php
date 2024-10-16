@@ -38,7 +38,7 @@ class EventMapper
         $result->description = $entity->getDescription();
         $result->isActive    = $entity->getIsActive();
         $result->createdAt   = $entity->getCreatedAt();
-        $result->updatedAt   = $entity->getCreatedAt();
+        $result->updatedAt   = $entity->getUpdatedAt();
 
         if ($entity->getOrganiser() !== null) {
             $result->organiser = $this->organiserMapper->mapEntityToDto($entity->getOrganiser());
@@ -63,6 +63,32 @@ class EventMapper
             $result[] = $this->mapEntityToInt($event);
         }
         sort($result);
+        return $result;
+    }
+
+    /**
+     * @param  iterable<Event> $events
+     * @return EventDto[]
+     */
+    public function mapEntitiesToDtoArray(iterable $events): array
+    {
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = $this->mapEntityToDto($event); 
+        }
+        return $result;
+
+        // Convert `PersistentCollection` to an array.
+        /*
+        $result = array_map(
+            fn($event) => [
+                'id'        => $event->getId(),
+                'name'      => $event->getName(),
+            ],
+            $events->toArray()
+        );
+        dd($result);
+        */
         return $result;
     }
 

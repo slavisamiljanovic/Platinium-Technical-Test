@@ -106,13 +106,30 @@ class EventService
     }
 
     /**
+     * @return int
+     */
+    public function countEventsFeed(): int
+    {
+        return $this->eventRepository->countEventsFeed();
+    }
+
+    /**
      * @param integer $limit
      * @param integer $offset
      * @return EventDto[]
      */
-    public function getEvents(int $limit, int $offset,): array
+    public function getEvents(int $limit, int $offset): array
     {
         $events = $this->eventRepository->findEvents($limit, $offset);
+        return array_map(fn (Event $event) => $this->toDto($event), $events);
+    }
+
+    /**
+     * @return EventDto[]
+     */
+    public function getEventsFeed(): array
+    {
+        $events = $this->eventRepository->findEventsFeed();
         return array_map(fn (Event $event) => $this->toDto($event), $events);
     }
 

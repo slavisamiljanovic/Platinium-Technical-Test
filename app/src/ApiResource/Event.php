@@ -16,12 +16,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Config\EventConfig;
-use App\Config\OrganiserConfig;
 use App\Controller\Api\EventDeleteController;
 use App\Dto\EventDto;
 use App\State\EventCreateProcessor;
 use App\State\EventProvider;
 use App\State\EventsProvider;
+use App\State\EventsFeedProvider;
 use App\State\EventUpdateProcessor;
 
 #[ApiResource(
@@ -62,6 +62,21 @@ use App\State\EventUpdateProcessor;
                         'description' => 'Starting point.',
                     ],
                 ],
+            ],
+        ),
+        new Get(
+            name: 'event_feed',
+            uriTemplate: '/events/feed',
+            provider: EventsFeedProvider::class,
+            normalizationContext: [
+                'groups' => [
+                    EventConfig::OUTPUT_FEED_LIST,
+                ],
+                'skip_null_values' => false,
+            ],
+            openapiContext: [
+                'summary'     => 'Events feed.',
+                'description' => 'Events feed.<br>***The API will return ALL events.***',
             ],
         ),
         new Get(
@@ -216,11 +231,13 @@ final class Event
     )]
     #[Groups([
         EventConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT_FEED_LIST,
     ])]
     public array $events = [];
 
     #[Groups([
         EventConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT_FEED_LIST,
     ])]
     public int $eventsCount = 0;
 

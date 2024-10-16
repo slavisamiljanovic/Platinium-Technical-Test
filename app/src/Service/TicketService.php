@@ -100,7 +100,7 @@ class TicketService
      * @param integer $offset
      * @return TicketDto[]
      */
-    public function getTickets(int $limit, int $offset,): array
+    public function getTickets(int $limit, int $offset): array
     {
         $tickets = $this->ticketRepository->findTickets($limit, $offset);
         return array_map(fn (Ticket $ticket) => $this->toDto($ticket), $tickets);

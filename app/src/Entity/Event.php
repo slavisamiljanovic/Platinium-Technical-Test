@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-// use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ArrayCollection;
 // use Doctrine\Common\Collections\Collection;
 // use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -56,6 +56,20 @@ class Event
     #[Gedmo\Timestampable(on: 'update')]
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $updatedAt;
+
+    /**
+     * @var ArrayCollection<int, Event>
+     */
+    #[ORM\ManyToMany(
+        targetEntity: Ticket::class,
+        mappedBy: 'events',
+    )]
+    private iterable $tickets;
+
+    public function __construct()
+    {
+        $this->tickets = new ArrayCollection();
+    }
 
     public function getId(): int
     {
@@ -130,6 +144,30 @@ class Event
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getTickets(): iterable
+    {
+        return $this->tickets;
+    }
+
+    public function addTicket(Ticket $ticket): self
+    {
+        if (!$this->tickets->contains($ticket)) {
+            $this->tickets[] = $ticket;
+            $ticket->addEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTicket(Ticket $ticket): self
+    {
+        if ($this->tickets->removeElement($ticket)) {
+            $ticket->removeEvent($this);
+        }
 
         return $this;
     }

@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Validator\Constraints as Assert;
 
 use App\Config\EventConfig;
+use App\Config\TicketConfig;
 use App\Config\DateTimeConfig;
 
 final class EventDto
@@ -21,6 +22,9 @@ final class EventDto
     #[Groups([
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT_FEED_LIST,
+        TicketConfig::OUTPUT,
+        TicketConfig::OUTPUT_LIST,
     ])]
     public ?int $id = null;
 
@@ -40,6 +44,9 @@ final class EventDto
         EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT_FEED_LIST,
+        TicketConfig::OUTPUT,
+        TicketConfig::OUTPUT_LIST,
     ])]
     public string $name;
 
@@ -73,6 +80,8 @@ final class EventDto
         EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        EventConfig::OUTPUT_FEED_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public bool $isActive = true;
 
@@ -92,6 +101,7 @@ final class EventDto
         EventConfig::INPUT,
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public ?OrganiserDto $organiser;
 
@@ -101,6 +111,7 @@ final class EventDto
     #[Groups([
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public DateTimeImmutable $createdAt;
 
@@ -110,7 +121,16 @@ final class EventDto
     #[Groups([
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
+        TicketConfig::OUTPUT,
     ])]
     public DateTimeImmutable $updatedAt;
+
+    /*
+    #[Groups([
+        EventConfig::OUTPUT,
+        EventConfig::OUTPUT_LIST,
+    ])]
+    public array $tickets = [];
+    */
 
 }

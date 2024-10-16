@@ -22,7 +22,7 @@ class ProfileMapper
         $result->bio       = $entity->getBio();
         $result->image     = $entity->getImage();
         $result->createdAt = $entity->getCreatedAt();
-        $result->updatedAt = $entity->getCreatedAt();
+        $result->updatedAt = $entity->getUpdatedAt();
 
         return $result;
     }

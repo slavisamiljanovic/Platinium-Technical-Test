@@ -12,10 +12,11 @@ final class EventConfig
 
     public const INPUT = 'EventInput';
 
-    public const OUTPUT      = 'EventOutput';
-    public const OUTPUT_LIST = 'EventListOutput';
+    public const OUTPUT           = 'EventOutput';
+    public const OUTPUT_LIST      = 'EventListOutput';
+    public const OUTPUT_FEED_LIST = 'EventFeedListOutput';
 
-    public const OUTPUT_LIST_LIMIT  = 50;
+    public const OUTPUT_LIST_LIMIT  = 10;
     public const OUTPUT_LIST_OFFSET = 0;
 
     public const VALID        = 'EventValid';

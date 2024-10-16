@@ -1,0 +1,20 @@
+App\Entity\Ticket:
+  ticket_{1..5}:
+    name: '<substr(<sentence(5)>, 0, 50)>'
+    description: <text(200)>
+    events: '<randomElements(@event_{1..50}, 3)>'
+  ticket_{6..10}:
+    name: '<substr(<sentence(5)>, 0, 50)>'
+    description: <text(200)>
+  ticket_{11..20}:
+    name: '<substr(<sentence(5)>, 0, 50)>'
+    description: <text(200)>
+    events: '<randomElements(@event_{1..50}, 4)>'
+  ticket_{21..50}:
+    name: '<substr(<sentence(5)>, 0, 50)>'
+    description: <text(200)>
+    events: '<randomElements(@event_{1..50}, 2)>'
+  ticket_{51..100}:
+    name: '<substr(<sentence(5)>, 0, 50)>'
+    description: <text(200)>
+    events: '<randomElements(@event_{1..50}, 1)>'

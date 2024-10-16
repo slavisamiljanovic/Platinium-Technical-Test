@@ -1,0 +1,139 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #3b3b3b;
+}
+
+p {
+  line-height: 1.6;
+  color: #666;
+}
+
+.disable-scroll { overflow-y: hidden; }
+
+.body-wrapper {
+  display: flex;
+  flex-direction: column;
+  /* Ensures the wrapper takes at least the full height of the viewport. */
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  /* Allows the main content to grow and take available space. */
+  flex: 1;
+}
+
+.nav-link {
+  margin-left: 10px;
+  padding: 10px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+.nav-link:hover {
+  background-color: #e2e6ea;
+  border-radius: 0.25rem;
+}
+.nav-link.router-link-exact-active {
+  background-color: #42b983;
+  color: white;
+  border-radius: 0.25rem;
+}
+
+footer {
+  background-color: #000;
+  & p {
+    color: #fff;
+  }
+}
+
+.small-text {
+  font-size: 0.875rem;
+}
+
+.error-placeholder {
+  display: block;
+  height: 1rem;
+
+  &.response-error {
+    height: 1.5rem;
+  }
+
+  .error {
+    display: block;
+    color: red;
+    font-size: 0.875rem;
+    text-align: left;
+  }
+}
+
+.form-group .form-label.required:after {
+  content: "*";
+  color: red;
+  text-align: right;
+  padding-left: 0.25rem;
+}
+
+.table {
+  width: 100%;
+}
+.table-list {
+  td {
+    vertical-align: middle;
+  }
+
+  th.id,
+  td.id {
+    min-width: 3.5rem;
+  }
+
+  th.description,
+  td.description {
+    max-width: 37.5rem;
+  }
+
+  th.ticket-events,
+  td.ticket-events {
+    width: 9.25rem;
+  }
+
+  .even td {
+    background-color: #fff; /* White background for even rows */
+  }
+  
+  .odd td {
+    background-color: #f1f1f1; /* Light background for odd rows */
+  }
+
+  tr:hover {
+    td {
+      cursor: pointer;
+      background-color: #d1d1d1;
+    }
+  }
+}
+
+.list-wrapper {
+  padding: 0 0.75rem;
+}
+
+.pagination {
+  .page-item {
+    &.last-item {
+      margin-left: auto;
+    }
+  }
+}
+
+.modal.show {
+  display: block;
+}

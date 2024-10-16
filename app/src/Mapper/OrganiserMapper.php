@@ -42,7 +42,7 @@ class OrganiserMapper
         $result->phone       = $entity->getPhone();
         $result->description = $entity->getDescription();
         $result->createdAt   = $entity->getCreatedAt();
-        $result->updatedAt   = $entity->getCreatedAt();
+        $result->updatedAt   = $entity->getUpdatedAt();
 
         return $result;
     }

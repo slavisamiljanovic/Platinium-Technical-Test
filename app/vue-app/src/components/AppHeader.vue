@@ -1,37 +1,71 @@
 <template>
-  <header>
-    <img alt="Vue logo" src="../assets/logo.png" height="50">
-    <p>My Vue.js Application</p>
-    <nav>
-      <ul>
-        <li><router-link to="/">Home</router-link></li>
-        <li><router-link to="/about">About</router-link></li>
-      </ul>
+  <header class="header d-flex justify-content-between align-items-center">
+    <div class="logo-title">
+      <router-link to="/dashboard">
+        <img src="../assets/logo.png" alt="Technical Test - Tickets System" class="logo">
+      </router-link>
+      <h1 class="h5"><router-link to="/dashboard">Technical Test - Tickets System</router-link></h1>
+    </div>
+    <nav class="d-flex">
+      <router-link class="nav-link" to="/">Home</router-link>
+      <router-link v-if="isLoggedIn" class="nav-link" to="/dashboard">Dashboard</router-link>
+      <router-link v-if="isLoggedIn" :class="{'nav-link': true, 'router-link-exact-active': isActiveRoute}" to="/tickets">Tickets</router-link>
+      <router-link v-if="isLoggedIn" class="nav-link" to="/events">Events</router-link>
+      <router-link v-if="isLoggedIn" class="nav-link" to="/organisers">Organisers</router-link>
+      <router-link class="nav-link" to="/about">About</router-link>
+      <router-link v-if="!isLoggedIn" class="nav-link" to="/login">Login</router-link>
+      <a v-if="isLoggedIn" href="#" @click.prevent="logout()" class="nav-link">Logout</a>
     </nav>
   </header>
 </template>
 
+<script>
+export default {
+  name: 'AppHeader',
+  computed: {
+    isLoggedIn () {
+      return this.$store.getters.isLoggedIn
+    },
+    isActiveRoute () {
+      return this.$route.path.startsWith('/tickets')
+    }
+  },
+  methods: {
+    logout () {
+      this.$store.dispatch('logout')
+        .then(
+          () => {
+            this.$router.push('/')
+          }
+        )
+    }
+  }
+}
+</script>
+
 <style lang="scss">
-  header {
-    display: flex;
-    border-bottom: 1px solid #ccc;
-    padding: .5rem 1rem;
+.header {
+  background-color: #f8f9fa;
+  padding: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.logo-title {
+  display: flex;
+  align-items: center;
 
-    p {
-      margin-left: 1rem;
+  h1 {
+    a {
+      color: #3b3b3b;
+      text-decoration: none;
+      &:hover {
+        text-decoration: none;
+      }
     }
   }
-
-  nav {
-    margin-left: auto;
-
-    ul {
-      list-style: none;
-    }
-
-    ul li {
-      display: inline-flex;
-      margin-left: 1rem;
-    }
-  }
+}
+.logo {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
 </style>

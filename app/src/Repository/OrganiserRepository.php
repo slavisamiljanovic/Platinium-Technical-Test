@@ -30,6 +30,12 @@ class OrganiserRepository extends ServiceEntityRepository
         return $queryBuilder;
     }
 
+    private function createOrganisersFeedQueryBuilder(): QueryBuilder
+    {
+        $queryBuilder = $this->createOrganisersQueryBuilder();
+        return $queryBuilder;
+    }
+
     public function save(Organiser $entity): void
     {
         $this->getEntityManager()->persist($entity);
@@ -52,6 +58,18 @@ class OrganiserRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return int
+     */
+    public function countOrganisersFeed(): int
+    {
+        $queryBuilder = $this->createOrganisersFeedQueryBuilder();
+        $queryBuilder->select('COUNT(o)');
+        /** @var int */
+        $result = $queryBuilder->getQuery()->getSingleScalarResult();
+        return $result;
+    }
+
+    /**
      * @param integer $limit
      * @param integer $offset
      * @return Organiser[]
@@ -64,6 +82,19 @@ class OrganiserRepository extends ServiceEntityRepository
         $queryBuilder->setFirstResult($offset);
         $queryBuilder->setMaxResults($limit);
         /** @var Organiser[] */
+        $result = $queryBuilder->getQuery()->getResult();
+        return $result;
+    }
+
+    /**
+     * @return Organiser[]
+     */
+    public function findOrganisersFeed(): array
+    {
+        $queryBuilder = $this->createOrganisersFeedQueryBuilder();
+        $queryBuilder->select('o');
+        $queryBuilder->orderBy('o.createdAt', 'DESC');
+        /** @var Event[] */
         $result = $queryBuilder->getQuery()->getResult();
         return $result;
     }

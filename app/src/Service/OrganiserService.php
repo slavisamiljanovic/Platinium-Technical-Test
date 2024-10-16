@@ -89,13 +89,30 @@ class OrganiserService
     }
 
     /**
+     * @return int
+     */
+    public function countOrganisersFeed(): int
+    {
+        return $this->organiserRepository->countOrganisersFeed();
+    }
+
+    /**
      * @param integer $limit
      * @param integer $offset
      * @return OrganiserDto[]
      */
-    public function getOrganisers(int $limit, int $offset,): array
+    public function getOrganisers(int $limit, int $offset): array
     {
         $organisers = $this->organiserRepository->findOrganisers($limit, $offset);
+        return array_map(fn (Organiser $organiser) => $this->toDto($organiser), $organisers);
+    }
+
+    /**
+     * @return EventDto[]
+     */
+    public function getOrganisersFeed(): array
+    {
+        $organisers = $this->organiserRepository->findOrganisersFeed();
         return array_map(fn (Organiser $organiser) => $this->toDto($organiser), $organisers);
     }
 

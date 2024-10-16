@@ -1,5 +1,7 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    <img src="../assets/logo.png" alt="Technical Test - Tickets System">
+    <h1>Author: Slaviša Miljanović</h1>
+    <h5>E-mail: <a href="mailto:slavisa036@yahoo.com">slavisa036@yahoo.com</a></h5>
   </div>
 </template>

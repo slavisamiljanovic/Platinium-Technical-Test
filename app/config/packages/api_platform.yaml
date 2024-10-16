@@ -1,10 +1,12 @@
 api_platform:
     title: 'Technical Test - Tickets System'
-    description: 'This is the API for managing tickets, events and organizers.'
+    description: 'This is the API for managing tickets, events and organisers.'
     version: '1.0.0'
     formats:
         json:
             mime_types: ['application/json']
+        jsonld: 
+            mime_types: ['application/ld+json']
         html:
             mime_types: ['text/html']
     exception_to_status:
