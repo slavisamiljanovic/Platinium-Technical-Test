@@ -1,3 +1,18 @@
+import { jwtDecode } from 'jwt-decode'
+import { LoggerService } from '@/plugins/services/logger'
+
+// Shape of the token payload.
+interface JwtPayload {
+  exp: number
+  iat: number
+  sub: string
+  // eslint-disable-next-line
+  [key: string]: any // Add other token properties if required.
+}
+
+// Logger service.
+const loggerService = new LoggerService()
+
 let loadingCount = 0
 // eslint-disable-next-line
 const subscribers: any[] = []
@@ -86,6 +101,41 @@ const isObjectEmpty = (obj: any): boolean => {
   return Object.keys(obj).length === 0
 }
 
+const isLoggedIn = (token: string): boolean => {
+  let result = false
+  loggerService.log('helpers.isLoggedIn() -> token', { logData: token })
+  if (token) {
+    result = !isTokenExpired(token)
+  }
+  loggerService.log('helpers.isLoggedIn()', { logData: result })
+  return result
+}
+
+const isTokenExpired = (token: string): boolean => {
+  let result = true
+  const decodedToken = decodeToken(token)
+  if (decodedToken && decodedToken.exp) {
+    const currentTime = Math.floor(Date.now() / 1000)
+    loggerService.log('helpers.isTokenExpired() -> decodedToken.exp', { logType: 'warn', logData: new Date(decodedToken.exp * 1000) })
+    loggerService.log('helpers.isTokenExpired() -> currentTime', { logType: 'warn', logData: new Date(currentTime * 1000) })
+    result = decodedToken.exp < currentTime
+  }
+  loggerService.log('helpers.isTokenExpired()', { logData: result })
+  return result
+}
+
+const decodeToken = (token: string): JwtPayload | null => {
+  let result = null
+  if (token) {
+    try {
+      result = jwtDecode<JwtPayload>(token)
+    } catch (error) {
+      loggerService.log('helpers.decodeToken()', { logType: 'error', logData: error })
+    }
+  }
+  return result
+}
+
 export function useHelper () {
   return {
     loaderStartLoading,
@@ -95,6 +145,8 @@ export function useHelper () {
     handleApiError,
     helperIsOdd,
     helperFormatDateTime,
-    isObjectEmpty
+    isObjectEmpty,
+    isLoggedIn,
+    isTokenExpired
   }
 }

@@ -111,10 +111,7 @@ export default defineComponent({
       }
 
       // Submit the form (call an API to log in).
-      if (process.env.NODE_ENV === 'development') {
-        console.info('DEBUG-INFO: AdminLogin -> handleSubmit() -> Logging in with: ', loginRequest)
-      }
-
+      this.$logger.log('AdminLogin -> handleSubmit() -> Logging in with', { logData: loginRequest })
       this.$store.dispatch('login', loginRequest)
         .then(
           () => {
@@ -123,10 +120,8 @@ export default defineComponent({
           }
         )
         .catch(error => {
-          if (process.env.NODE_ENV === 'development') {
-            console.info('DEBUG-INFO: AdminLogin -> handleSubmit() -> error: ', error)
-          }
           // Handle error response.
+          this.$logger.log('AdminLogin -> handleSubmit() -> error', { logType: 'error', logData: error })
           this.responseError = this.handleApiError(error, 'Failed to login. Please try again.')
         })
     }

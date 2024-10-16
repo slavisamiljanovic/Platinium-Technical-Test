@@ -45,9 +45,7 @@ export default {
   mounted () {
     // Subscribe to loading state.
     this.loaderSubscribe((isLoading) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.info('DEBUG-INFO: App -> loaderSubscribe(isLoading): ', isLoading)
-      }
+      this.$logger.log('App -> mounted() -> loaderSubscribe(isLoading)', { logType: 'info', logData: isLoading })
       this.isLoading = isLoading
     })
   },

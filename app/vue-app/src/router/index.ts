@@ -9,6 +9,13 @@ import {
   AdminLoginView
 } from '@/views'
 import store from '@/store'
+import { useHelper } from '@/store/helpers'
+
+// Destructure methods from the helper.
+const {
+  isLoggedIn,
+  isTokenExpired
+} = useHelper()
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -93,18 +100,23 @@ router.beforeEach(
   (to, from, next) => {
     const defaultTitle = 'Technical Test - Tickets System'
     document.title = (to.meta?.title as string) + ' | ' + defaultTitle || defaultTitle
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-      if (store.getters.isLoggedIn) {
-        next()
-        return
-      }
-      next('/login')
-    } else if (to.matched.some(record => record.path === '/login')) {
-      if (store.getters.isLoggedIn) {
+
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+    const isLoginPage = to.matched.some(record => record.path === '/login')
+    if (requiresAuth || isLoginPage) {
+      const token = store.state.token
+      const isUserLoggedIn = isLoggedIn(token)
+      const isUserTokenExpired = isTokenExpired(token)
+      if (!isUserLoggedIn && requiresAuth) {
+        if (isUserTokenExpired) {
+          store.dispatch('tokenExpired')
+        }
+        next('/login')
+      } else if (isUserLoggedIn && isLoginPage) {
         next('/dashboard')
-        return
+      } else {
+        next()
       }
-      next()
     } else {
       next()
     }

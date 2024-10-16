@@ -1,17 +1,26 @@
 import { createStore } from 'vuex'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 import {
   API_DOMAIN,
   LIST_LIMIT,
   LIST_OFFSET
 } from './constants'
 import { useHelper } from './helpers'
+import { LoggerService } from '@/plugins/services/logger'
+
+// Logger service.
+const loggerService = new LoggerService()
 
 // Destructure methods from the helper.
 const {
   loaderStartLoading,
-  loaderStopLoading
+  loaderStopLoading,
+  isLoggedIn
 } = useHelper()
+
+// Get toast interface.
+const toast = useToast()
 
 export default createStore({
   state: {
@@ -19,12 +28,15 @@ export default createStore({
     apiURL: API_DOMAIN + '/api/',
     token: localStorage.getItem('token') || '',
     user: {},
-    tickets: {},
     eventsFeed: {},
     organisersFeed: {}
   },
   getters: {
-    isLoggedIn: state => !!state.token,
+    isUserLoggedIn (state): boolean {
+      const token = state.token || ''
+      const result = isLoggedIn(token)
+      return result
+    },
     authStatus: state => state.status
   },
   mutations: {
@@ -35,17 +47,17 @@ export default createStore({
       state.status = 'success'
       state.token = data.token
       state.user = data.user
+      localStorage.setItem('token', data.token)
     },
     AUTH_ERROR (state) {
       state.status = 'error'
+      localStorage.removeItem('token')
     },
     USER_LOGOUT (state) {
       state.status = ''
       state.token = ''
       state.user = {}
-    },
-    FETCH_TICKETS (state, data) {
-      state.tickets = data
+      localStorage.removeItem('token')
     },
     FETCH_EVENTS_FEED (state, data) {
       state.eventsFeed = data
@@ -55,6 +67,9 @@ export default createStore({
     }
   },
   actions: {
+    updateToken ({ commit }, token: string) {
+      commit('setToken', token)
+    },
     login ({ commit }, loginRequest) {
       // Start loading.
       loaderStartLoading()
@@ -70,18 +85,14 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(login) -> response: ', response)
-              }
-
               // The API responds with a user data upon successful login.
+              loggerService.log('$store.dispatch(login) -> response', { logType: 'info', logData: response })
               const { user } = response.data
               const token = user.token
 
               // Store the token in Vuex and localStorage.
               // Update Vuex state with user data and user token.
               this.commit('AUTH_SUCCESS', { token, user })
-              localStorage.setItem('token', token)
 
               // End loading.
               loaderStopLoading()
@@ -93,21 +104,22 @@ export default createStore({
             // End loading.
             loaderStopLoading()
             commit('AUTH_ERROR')
-            localStorage.removeItem('token')
             reject(error)
           })
       })
     },
     logout ({ commit }) {
       commit('USER_LOGOUT')
-      localStorage.removeItem('token')
     },
-    fetchTickets ({ commit }, requestParams) {
+    tokenExpired ({ commit }) {
+      commit('USER_LOGOUT')
+      toast.warning('Your token has expired. Please log in again.')
+    },
+    fetchTickets (_, requestParams) {
       // Start loading.
       loaderStartLoading()
 
       return new Promise((resolve, reject) => {
-        commit('FETCH_TICKETS', {})
         axios(
           {
             url: this.state.apiURL + 'tickets',
@@ -121,13 +133,8 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(fetchTickets) -> response: ', response)
-              }
-
               // Store the data in Vuex.
-              const { data } = response
-              this.commit('FETCH_TICKETS', data)
+              loggerService.log('$store.dispatch(fetchTickets) -> response', { logType: 'info', logData: response })
 
               // End loading.
               loaderStopLoading()
@@ -156,9 +163,7 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(fetchTicket) -> response: ', response)
-              }
+              loggerService.log('$store.dispatch(fetchTicket) -> response', { logType: 'info', logData: response })
 
               // End loading.
               loaderStopLoading()
@@ -191,9 +196,7 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(fetchEvents) -> response: ', response)
-              }
+              loggerService.log('$store.dispatch(fetchEvents) -> response', { logType: 'info', logData: response })
 
               // End loading.
               loaderStopLoading()
@@ -220,11 +223,8 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(fetchEventsFeed) -> response: ', response)
-              }
-
               // Store the data in Vuex.
+              loggerService.log('$store.dispatch(fetchEventsFeed) -> response', { logType: 'info', logData: response })
               const { data } = response
               this.commit('FETCH_EVENTS_FEED', data)
 
@@ -254,9 +254,7 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(fetchOrganisers) -> response: ', response)
-              }
+              loggerService.log('$store.dispatch(fetchOrganisers) -> response', { logType: 'info', logData: response })
 
               // End loading.
               loaderStopLoading()
@@ -283,11 +281,8 @@ export default createStore({
         )
           .then(
             response => {
-              if (process.env.NODE_ENV === 'development') {
-                console.info('DEBUG-INFO: $store.dispatch(fetchOrganisersFeed) -> response: ', response)
-              }
-
               // Store the data in Vuex.
+              loggerService.log('$store.dispatch(fetchOrganisersFeed) -> response', { logType: 'info', logData: response })
               const { data } = response
               this.commit('FETCH_ORGANISERS_FEED', data)
 

@@ -78,11 +78,7 @@ export default {
         limit: LIST_LIMIT,
         offset: LIST_OFFSET
       }
-      /*
-      if (process.env.NODE_ENV === 'development') {
-        console.info('DEBUG-INFO: AdminDashboard -> fetchTickets() -> params: ', requestParams)
-      }
-      */
+      this.$logger.log('AdminDashboard -> fetchTickets() -> params', { logType: 'info', logData: requestParams })
       this.$store.dispatch('fetchTickets', requestParams)
         .then(
           (response) => {
@@ -92,12 +88,8 @@ export default {
           }
         )
         .catch(error => {
-          /*
-          if (process.env.NODE_ENV === 'development') {
-            console.info('DEBUG-INFO: AdminDashboard -> fetchTickets() -> error: ', error)
-          }
-          */
           // Handle error response.
+          this.$logger.log('AdminDashboard -> fetchTickets() -> error', { logType: 'error', logData: error })
           this.toast.error(this.handleApiError(error, 'Failed to fetch the list of tickets.'))
         })
     },
@@ -107,11 +99,7 @@ export default {
         limit: LIST_LIMIT,
         offset: LIST_OFFSET
       }
-      /*
-      if (process.env.NODE_ENV === 'development') {
-        console.info('DEBUG-INFO: AdminDashboard -> fetchEvents() -> params: ', requestParams)
-      }
-      */
+      this.$logger.log('AdminDashboard -> fetchEvents() -> params', { logType: 'info', logData: requestParams })
       this.$store.dispatch('fetchEvents', requestParams)
         .then(
           (response) => {
@@ -121,12 +109,8 @@ export default {
           }
         )
         .catch(error => {
-          /*
-          if (process.env.NODE_ENV === 'development') {
-            console.info('DEBUG-INFO: AdminDashboard -> fetchEvents() -> error: ', error)
-          }
-          */
           // Handle error response.
+          this.$logger.log('AdminDashboard -> fetchEvents() -> error', { logType: 'error', logData: error })
           this.toast.error(this.handleApiError(error, 'Failed to fetch the list of events.'))
         })
     },
@@ -136,11 +120,7 @@ export default {
         limit: LIST_LIMIT,
         offset: LIST_OFFSET
       }
-      /*
-      if (process.env.NODE_ENV === 'development') {
-        console.info('DEBUG-INFO: AdminDashboard -> fetchOrganisers() -> params: ', requestParams)
-      }
-      */
+      this.$logger.log('AdminDashboard -> fetchOrganisers() -> params', { logType: 'info', logData: requestParams })
       this.$store.dispatch('fetchOrganisers', requestParams)
         .then(
           (response) => {
@@ -150,12 +130,8 @@ export default {
           }
         )
         .catch(error => {
-          /*
-          if (process.env.NODE_ENV === 'development') {
-            console.info('DEBUG-INFO: AdminDashboard -> fetchOrganisers() -> error: ', error)
-          }
-          */
           // Handle error response.
+          this.$logger.log('AdminDashboard -> fetchOrganisers() -> error', { logType: 'error', logData: error })
           this.toast.error(this.handleApiError(error, 'Failed to fetch the list of organisers.'))
         })
     }

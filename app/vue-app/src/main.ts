@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import store from './store'
+import App from '@/App.vue'
+import router from '@/router'
+import store from '@/store'
+import plugins from '@/plugins/plugins'
 import Toast, { PluginOptions, POSITION } from 'vue-toastification'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -17,9 +18,13 @@ const toastOptions: PluginOptions = {
   closeOnClick: true
 }
 
-createApp(App)
+// Create the application.
+const app = createApp(App)
   .use(store)
   .use(router)
   .use(Toast, toastOptions)
+  .use(plugins)
   .component('LoadingSpinner', LoadingSpinner)
-  .mount('#app')
+
+// Mount the application.
+app.mount('#app')
