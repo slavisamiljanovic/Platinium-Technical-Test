@@ -16,8 +16,10 @@
         </li>
         <li class="page-item last-item">
           <button @click.prevent="openModal(null, 'ADD_TICKET')" class="btn btn-primary me-2">Add Ticket</button>
+          <!--
           <button @click.prevent="openModal(null, 'ADD_EVENT')" class="btn btn-primary me-2">Add Event</button>
           <button @click.prevent="openModal(null, 'ADD_ORGANISER')" class="btn btn-primary">Add Organiser</button>
+          -->
         </li>
       </ul>
     </nav>
