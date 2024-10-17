@@ -53,7 +53,6 @@ ENTRYPOINT ["docker-app-entrypoint"]
 CMD ["php-fpm"]
 
 
-
 FROM php_fpm AS app_dev
 
 ENV APP_ENV=dev
@@ -69,7 +68,6 @@ RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini && \
 
 ARG APP_USER
 USER ${APP_USER}
-
 
 
 FROM php_fpm AS app_prod
@@ -100,9 +98,17 @@ RUN set -eux; \
     sync
 
 
+# Use the official Node.js image as the base.
+FROM node:22-alpine AS node_alpine
+
+
+FROM node_alpine AS app-vue_dev
+
+RUN npm install -g @vue/cli --legacy-peer-deps
+
 
 # Use the official Node.js image as the base.
-FROM node:22-alpine AS app-vue_prod
+FROM node_alpine AS app-vue_prod
 
 # Set working directory inside the container.
 WORKDIR /app
@@ -129,7 +135,6 @@ RUN npm run build
 CMD [ "npm", "run", "serve" ]
 
 
-
 FROM nginx:1-alpine AS proxy
 
 ARG APP_USER
@@ -145,3 +150,4 @@ WORKDIR /var/www/html/public
 COPY --from=app_prod /var/www/html/public .
 
 # COPY docker/proxy/backend.conf /etc/nginx/conf.d/default.conf
+
