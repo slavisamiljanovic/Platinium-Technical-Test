@@ -17,7 +17,8 @@ const {
   loaderStartLoading,
   loaderStopLoading,
   isLoggedIn,
-  isTokenAboutToExpire
+  isTokenAboutToExpire,
+  handleApiError
 } = useHelper()
 
 // Get toast interface.
@@ -143,7 +144,11 @@ export default createStore({
       if (!tokenExpiration.isAboutToExpire && tokenExpiration.refreshTime > 0) {
         const timeoutId = setTimeout(
           () => {
-            dispatch('refreshToken')
+            dispatch('refreshToken').then().catch(
+              error => {
+                handleApiError(error, 'Failed to refresh the token.')
+              }
+            )
           },
           tokenExpiration.refreshTime * 1000
         )
@@ -185,7 +190,6 @@ export default createStore({
     fetchTickets (_, requestParams) {
       // Start loading.
       loaderStartLoading()
-
       return new Promise((resolve, reject) => {
         axios(
           {
@@ -200,12 +204,37 @@ export default createStore({
         )
           .then(
             response => {
-              // Store the data in Vuex.
-              loggerService.log('$store.dispatch(fetchTickets) -> response', { logType: 'info', logData: response })
-
               // End loading.
+              loggerService.log('$store.dispatch(fetchTickets) -> response', { logType: 'info', logData: response })
               loaderStopLoading()
-
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    saveTicket (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        delete data.ticketId
+        axios(
+          {
+            url: this.state.apiURL + 'tickets',
+            method: 'POST',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(saveTicket) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
               resolve(response)
             }
           )
@@ -219,7 +248,6 @@ export default createStore({
     fetchTicket (_, ticketId) {
       // Start loading.
       loaderStartLoading()
-
       return new Promise((resolve, reject) => {
         axios(
           {
@@ -230,11 +258,67 @@ export default createStore({
         )
           .then(
             response => {
-              loggerService.log('$store.dispatch(fetchTicket) -> response', { logType: 'info', logData: response })
-
               // End loading.
+              loggerService.log('$store.dispatch(fetchTicket) -> response', { logType: 'info', logData: response })
               loaderStopLoading()
-
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    updateTicket (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        const ticketId = data.ticketId
+        delete data.ticketId
+        axios(
+          {
+            url: this.state.apiURL + `tickets/${ticketId}`,
+            method: 'PUT',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(updateTicket) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    deleteTicket (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        const ticketId = data.ticketId
+        delete data.ticketId
+        axios(
+          {
+            url: this.state.apiURL + `tickets/${ticketId}`,
+            method: 'DELETE',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(deleteTicket) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
               resolve(response)
             }
           )

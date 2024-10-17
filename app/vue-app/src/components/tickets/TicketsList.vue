@@ -15,9 +15,9 @@
           <a href="#" class="page-link" @click.prevent="goToPage(currentPage + 1)">Next</a>
         </li>
         <li class="page-item last-item">
-          <button @click.prevent="openModal(null)" class="btn btn-primary me-2">Add Ticket</button>
-          <button @click.prevent="openModal(null)" class="btn btn-primary me-2">Add Event</button>
-          <button @click.prevent="openModal(null)" class="btn btn-primary">Add Organiser</button>
+          <button @click.prevent="openModal(null, 'ADD_TICKET')" class="btn btn-primary me-2">Add Ticket</button>
+          <button @click.prevent="openModal(null, 'ADD_EVENT')" class="btn btn-primary me-2">Add Event</button>
+          <button @click.prevent="openModal(null, 'ADD_ORGANISER')" class="btn btn-primary">Add Organiser</button>
         </li>
       </ul>
     </nav>
@@ -44,14 +44,14 @@
           <td class="text-start">{{ ticket.name }}</td>
           <td class="description text-start">{{ ticket.description }}</td>
           <td class="text-center ticket-events">
-            <button v-if="ticket.events.length > 0" @click.prevent="openModal(ticket, true)" class="btn btn-sm btn-secondary">View Events</button>
+            <button v-if="ticket.events.length > 0" @click.prevent="openModal(ticket, 'VIEW_TICKET')" class="btn btn-sm btn-secondary">View Events</button>
             <span v-if="ticket.events.length === 0" class="text-danger">No ticket-related events.</span>
           </td>
           <td class="text-end">{{ helperFormatDateTime(new Date(ticket.createdAt)) }}</td>
           <td class="text-end">{{ helperFormatDateTime(new Date(ticket.updatedAt)) }}</td>
           <td class="text-center">
-            <button @click.prevent="openModal(ticket)" class="btn btn-sm btn-secondary me-2">Edit</button>
-            <button @click.prevent="deleteEvent(ticket.id)" class="btn btn-sm btn-danger">Delete</button>
+            <button @click.prevent="openModal(ticket, 'EDIT_TICKET')" class="btn btn-sm btn-secondary me-2">Edit</button>
+            <button @click.prevent="openModal(ticket, 'DELETE_TICKET')" class="btn btn-sm btn-danger">Delete</button>
           </td>
         </tr>
         <tr v-if="paginatedTickets.length === 0">
@@ -81,16 +81,19 @@
   <!-- Modal to view ticket-related events. -->
   <EventsModal
     v-if="isEventsModalOpen"
-    :ticket="selectedTicket"
+    :ticket="selectedData"
     @close="isEventsModalOpen = false"
   />
 
-  <!-- Modal for adding / editing tickets. -->
+  <!-- Modal for adding / editing / deleting ticket. -->
   <TicketModal
     v-if="isTicketModalOpen"
-    :ticket="selectedTicket"
+    :ticket="selectedData"
+    :modalAction="modalAction"
+    :hideModal="hideModal"
+    :responseError="responseError"
     @close="isTicketModalOpen = false"
-    @save="saveEvent"
+    @dispatchAction="dispatchAction"
   />
 </template>
 
@@ -99,7 +102,6 @@ import { watch, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useToast } from 'vue-toastification'
-import axios from 'axios'
 import { useHelper } from '@/store/helpers'
 import { LIST_LIMIT, LIST_OFFSET } from '@/store/constants'
 import TicketModal from './TicketModal.vue'
@@ -133,7 +135,7 @@ export default {
     const tickets = ref([])
     const ticketsCount = ref(0)
 
-    const selectedTicket = ref(null)
+    const selectedData = ref(null)
     const isEventsModalOpen = ref(false)
     const isTicketModalOpen = ref(false)
 
@@ -141,6 +143,10 @@ export default {
     const perPage = LIST_LIMIT // Number of items per page.
     const sortKey = ref('updatedAt') // Current column to sort by.
     const sortOrder = ref('desc') // Sort order: 'asc' or 'desc'.
+
+    const modalAction = ref('') // Modal action.
+    const hideModal = ref(false) // Temporarily hide the modal dialog while dispatch is running.
+    const responseError = ref(null) // Response error.
 
     /**
      * Watchers: Watch for route query changes.
@@ -175,14 +181,18 @@ export default {
         })
     }
 
-    const fetchTicket = (ticketId) => {
+    const fetchTicket = (ticketId, action) => {
       store.dispatch('fetchTicket', ticketId)
         .then(
           (response) => {
             const ticket = response.data.ticket
-            selectedTicket.value = { ...ticket }
+            selectedData.value = { ...ticket }
             // this.toast.info('Ticket fetched successfully.')
-            isEventsModalOpen.value = true
+            if (action === 'VIEW') {
+              isEventsModalOpen.value = true
+            } else {
+              isTicketModalOpen.value = true
+            }
           }
         )
         .catch(error => {
@@ -191,15 +201,44 @@ export default {
         })
     }
 
-    const openModal = (ticket, viewEvents) => {
-      // Clone the ticket or set to NULL for NEW.
-      selectedTicket.value = ticket ? { ...ticket } : null
-      if (viewEvents) {
-        // Fetch entire ticket.
-        fetchTicket(selectedTicket.value.id)
-      } else {
-        isTicketModalOpen.value = true
+    const openModal = (data, action) => {
+      responseError.value = null
+      const params = action.split('_')
+      if (params[1] === 'TICKET') {
+        modalAction.value = params[0]
+
+        switch (modalAction.value) {
+          case 'ADD':
+            selectedData.value = null
+            isTicketModalOpen.value = true
+
+            break
+
+          case 'EDIT':
+          case 'VIEW':
+          case 'DELETE':
+            // Clone the ticket or set to NULL for NEW.
+            selectedData.value = { ...data }
+
+            // Fetch entire ticket.
+            fetchTicket(selectedData.value.id, modalAction.value)
+            break
+        }
+      } else if (params[1] === 'EVENT') {
+        // TODO:
+      } else if (params[1] === 'ORGANISER') {
+        // TODO:
       }
+      console.log(params)
+      /*
+      ADD_TICKET
+      EDIT_TICKET
+      VIEW_TICKET
+      DELETE_TICKET
+
+      ADD_EVENT
+      ADD_ORGANISER
+      */
     }
 
     const fetchEventsFeed = () => {
@@ -251,6 +290,93 @@ export default {
       }
     }
 
+    const loadPageContent = () => {
+      // Fetch the paginated tickets list.
+      fetchTickets(perPage, (currentPage.value - 1) * perPage)
+
+      // Fetch and store all events in the Vuex store.
+      fetchEventsFeed()
+
+      // Fetch and store all organisers in the Vuex store.
+      fetchOrganisersFeed()
+    }
+
+    const dispatchAction = async (ticket, ticketId) => {
+      hideModal.value = true
+      if (modalAction.value === 'ADD') {
+        // Creating a new data.
+        // Request params.
+        const requestParams = {
+          ticket
+        }
+        await store.dispatch('saveTicket', requestParams)
+          .then(
+            () => {
+              hideModal.value = false
+              isTicketModalOpen.value = false
+              toast.success('The ticket has been created successfully.')
+
+              // Load page content.
+              loadPageContent()
+            }
+          )
+          .catch(error => {
+            // Handle error response.
+            hideModal.value = false
+            responseError.value = handleApiError(error, 'Failed to save the ticket.')
+            toast.error(responseError.value)
+          })
+      } else if (modalAction.value === 'EDIT') {
+        // Updating an existing data.
+        // Request params.
+        const requestParams = {
+          ticket,
+          ticketId
+        }
+        await store.dispatch('updateTicket', requestParams)
+          .then(
+            () => {
+              hideModal.value = false
+              isTicketModalOpen.value = false
+              toast.success('The ticket has been saved successfully.')
+
+              // Load page content.
+              loadPageContent()
+            }
+          )
+          .catch(error => {
+            // Handle error response.
+            hideModal.value = false
+            responseError.value = handleApiError(error, 'Failed to save the ticket.')
+            toast.error(responseError.value)
+          })
+      } else if (modalAction.value === 'DELETE') {
+        // Updating an existing data.
+        // Request params.
+        const requestParams = {
+          ticket,
+          ticketId
+        }
+        await store.dispatch('deleteTicket', requestParams)
+          .then(
+            () => {
+              hideModal.value = false
+              isTicketModalOpen.value = false
+              toast.success('The ticket has been deleted successfully.')
+
+              // Load page content.
+              loadPageContent()
+            }
+          )
+          .catch(error => {
+            // Handle error response.
+            hideModal.value = false
+            responseError.value = handleApiError(error, 'Failed to delete the ticket.')
+            toast.error(responseError.value)
+          })
+      }
+    }
+
     /**
      * Computed methods.
      */
@@ -291,14 +417,8 @@ export default {
       // Current page based on route parameter.
       currentPage.value = Number(route.params.currentPage) || 1
 
-      // Fetch the paginated tickets list.
-      fetchTickets(perPage, (currentPage.value - 1) * perPage)
-
-      // Fetch and store all events in the Vuex store.
-      fetchEventsFeed()
-
-      // Fetch and store all organisers in the Vuex store.
-      fetchOrganisersFeed()
+      // Load page content.
+      loadPageContent()
     })
 
     return {
@@ -314,7 +434,7 @@ export default {
       sortBy,
       getSortClass,
       goToPage,
-      selectedTicket,
+      selectedData,
       isEventsModalOpen,
       isTicketModalOpen,
       helperIsOdd,
@@ -323,25 +443,15 @@ export default {
       fetchTickets,
       fetchEventsFeed,
       fetchOrganisersFeed,
-      openModal
+      openModal,
+      dispatchAction,
+      modalAction,
+      hideModal,
+      responseError
     }
   }
   /*
   methods: {
-    saveEvent (ticket) {
-      if (ticket.id) {
-        // Edit existing ticket
-        const index = this.tickets.findIndex((e) => e.id === ticket.id)
-        if (index !== -1) {
-          this.$set(this.tickets, index, ticket)
-        }
-      } else {
-        // Add new ticket
-        ticket.id = this.tickets.length + 1 // Temporary ID, adjust with real API logic
-        this.tickets.push(ticket)
-      }
-      this.isTicketModalOpen = false
-    },
     async deleteEvent (eventId) {
       const confirmed = confirm('Are you sure you want to delete this ticket?')
       if (confirmed) {

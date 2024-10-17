@@ -105,8 +105,8 @@ use Symfony\Component\Validator\Constraints as Assert;
             ],
             validationContext: [
                 'groups' => [
-                    UserConfig::VALID_UPDATE,
                     UserConfig::VALID,
+                    UserConfig::VALID_UPDATE,
                 ],
             ],
             openapiContext: [
@@ -118,7 +118,18 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 final class User
 {
-    #[Assert\Valid]
+    #[Assert\Valid(
+        groups: [
+            UserConfig::VALID,
+            UserConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            UserConfig::VALID,
+            UserConfig::VALID_UPDATE,
+        ]
+    )]
     #[Groups([
         UserConfig::INPUT,
         UserConfig::OUTPUT,

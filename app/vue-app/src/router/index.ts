@@ -15,7 +15,8 @@ import { useHelper, TokenExpiration } from '@/store/helpers'
 const {
   isLoggedIn,
   isTokenExpired,
-  isTokenAboutToExpire
+  isTokenAboutToExpire,
+  handleApiError
 } = useHelper()
 
 const routes: Array<RouteRecordRaw> = [
@@ -111,7 +112,11 @@ router.beforeEach(
     // A case to refresh the token immediately if it is about to expire.
     const tokenExpiration: TokenExpiration = isTokenAboutToExpire(token)
     if (tokenExpiration.isAboutToExpire) {
-      store.dispatch('refreshToken')
+      store.dispatch('refreshToken').then().catch(
+        error => {
+          handleApiError(error, 'Failed to refresh the token.')
+        }
+      )
     }
 
     // A case for removing a token when it has expired and notifying the user.

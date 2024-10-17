@@ -241,7 +241,18 @@ final class Organiser
     ])]
     public int $organisersCount = 0;
 
-    #[Assert\Valid]
+    #[Assert\Valid(
+        groups: [
+            OrganiserConfig::VALID,
+            OrganiserConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            OrganiserConfig::VALID,
+            OrganiserConfig::VALID_UPDATE,
+        ]
+    )]
     #[Groups([
         OrganiserConfig::INPUT,
         OrganiserConfig::OUTPUT,

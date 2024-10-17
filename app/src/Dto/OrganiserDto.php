@@ -18,6 +18,7 @@ use App\Config\DateTimeConfig;
 
 final class OrganiserDto
 {
+
     #[ApiProperty(identifier: true)]
 
     #[Assert\NotNull(

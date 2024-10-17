@@ -17,20 +17,12 @@ use App\Config\DateTimeConfig;
 
 final class TicketDto
 {
+
     #[ApiProperty(identifier: true)]
 
-    #[Assert\NotNull(
-        groups: [
-            EventConfig::VALID_CREATE,
-            EventConfig::VALID_UPDATE,
-        ]
-    )]
     #[Groups([
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,
-        EventConfig::INPUT,
-        EventConfig::OUTPUT,
-        EventConfig::OUTPUT_LIST,
     ])]
     public ?int $id = null;
 
@@ -49,9 +41,6 @@ final class TicketDto
         TicketConfig::INPUT,
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,
-        EventConfig::INPUT,
-        EventConfig::OUTPUT,
-        EventConfig::OUTPUT_LIST,
     ])]
     public string $name;
 
@@ -65,8 +54,6 @@ final class TicketDto
         TicketConfig::INPUT,
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,
-        EventConfig::OUTPUT,
-        EventConfig::OUTPUT_LIST,
     ])]
     public ?string $description = null;
 
@@ -89,18 +76,31 @@ final class TicketDto
     public DateTimeImmutable $updatedAt;
 
     /**
-     * @var int[]
+     * @var EventDto[]
      */
-    #[Assert\All(
-        constraints: [
-            new Assert\NotBlank(),
-            new Assert\Type('integer'),
-        ],
+    #[Assert\Valid(
         groups: [
-            TicketConfig::VALID,
-        ],
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
+        ]
     )]
-    #[Groups([
+    #[Assert\Type(
+        'array',
+        groups: [
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\All([
+        new Assert\Type(
+            type: EventDto::class,
+            groups: [
+                TicketConfig::VALID_CREATE,
+                TicketConfig::VALID_UPDATE,
+            ]
+        )
+    ])]
+     #[Groups([
         TicketConfig::INPUT,
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,

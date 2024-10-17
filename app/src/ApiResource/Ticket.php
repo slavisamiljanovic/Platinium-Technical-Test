@@ -111,8 +111,8 @@ use App\State\TicketUpdateProcessor;
             ],
             validationContext: [
                 'groups' => [
-                    TicketConfig::VALID_CREATE,
                     TicketConfig::VALID,
+                    TicketConfig::VALID_CREATE,
                 ],
             ],
             openapiContext: [
@@ -145,6 +145,7 @@ use App\State\TicketUpdateProcessor;
             validationContext: [
                 'groups' => [
                     TicketConfig::VALID,
+                    TicketConfig::VALID_UPDATE,
                 ],
             ],
             openapiContext: [
@@ -222,7 +223,18 @@ final class Ticket
     ])]
     public int $ticketsCount = 0;
 
-    #[Assert\Valid]
+    #[Assert\Valid(
+        groups: [
+            TicketConfig::VALID,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            TicketConfig::VALID,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
     #[Groups([
         TicketConfig::INPUT,
         TicketConfig::OUTPUT,

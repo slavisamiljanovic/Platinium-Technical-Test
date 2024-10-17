@@ -160,8 +160,8 @@ use App\State\EventUpdateProcessor;
             ],
             validationContext: [
                 'groups' => [
-                    EventConfig::VALID_UPDATE,
                     EventConfig::VALID,
+                    EventConfig::VALID_UPDATE,
                 ],
             ],
             openapiContext: [
@@ -241,7 +241,18 @@ final class Event
     ])]
     public int $eventsCount = 0;
 
-    #[Assert\Valid]
+    #[Assert\Valid(
+        groups: [
+            EventConfig::VALID,
+            EventConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            EventConfig::VALID,
+            EventConfig::VALID_UPDATE,
+        ]
+    )]
     #[Groups([
         EventConfig::INPUT,
         EventConfig::OUTPUT,

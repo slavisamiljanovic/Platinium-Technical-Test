@@ -17,18 +17,40 @@ use App\Config\DateTimeConfig;
 
 final class EventDto
 {
+
     #[ApiProperty(identifier: true)]
 
+    #[Assert\NotBlank(
+        groups: [
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\Type(
+        'integer',
+        groups: [
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
     #[Groups([
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
         EventConfig::OUTPUT_FEED_LIST,
+        TicketConfig::INPUT,
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,
     ])]
     public ?int $id = null;
 
     #[Assert\Length(
+        min: 1,
         max: EventConfig::NAME_LENGTH,
         groups: [
             EventConfig::VALID,
@@ -38,6 +60,14 @@ final class EventDto
         groups: [
             EventConfig::VALID_CREATE,
             EventConfig::VALID_UPDATE,
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
+        ]
+    )]
+    #[Assert\NotNull(
+        groups: [
+            TicketConfig::VALID_CREATE,
+            TicketConfig::VALID_UPDATE,
         ]
     )]
     #[Groups([
@@ -45,10 +75,11 @@ final class EventDto
         EventConfig::OUTPUT,
         EventConfig::OUTPUT_LIST,
         EventConfig::OUTPUT_FEED_LIST,
+        TicketConfig::INPUT,
         TicketConfig::OUTPUT,
         TicketConfig::OUTPUT_LIST,
     ])]
-    public string $name;
+    public ?string $name = null;
 
     #[Assert\Length(
         max: EventConfig::DESCRIPTION_LENGTH,

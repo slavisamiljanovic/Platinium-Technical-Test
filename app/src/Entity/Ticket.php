@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-// use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
@@ -45,18 +44,16 @@ class Ticket
     #[ORM\ManyToMany(
         targetEntity: Event::class,
         inversedBy: 'tickets',
-        cascade: ['remove']
+        cascade: ['persist']
     )]
-    #[ORM\JoinTable(name: 'ticket_events')]
-    #[ORM\JoinColumn(
-        name: 'ticket_id',
-        referencedColumnName: 'id',
-        onDelete: 'CASCADE'
-    )]
-    #[ORM\InverseJoinColumn(
-        name: 'event_id',
-        referencedColumnName: 'id',
-        onDelete: 'CASCADE'
+    #[ORM\JoinTable(
+        name: 'ticket_events',
+        joinColumns: [
+            new ORM\JoinColumn(name: 'ticket_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')
+        ],
+        inverseJoinColumns: [
+            new ORM\JoinColumn(name: 'event_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')
+        ]
     )]
     private iterable $events;
 
@@ -140,6 +137,14 @@ class Ticket
         }
 
         return $this;
+    }
+
+    #[ORM\PreRemove]
+    public function removeEventRelations()
+    {
+        foreach ($this->events as $event) {
+            $event->removeTicket($this);
+        }
     }
 
 }

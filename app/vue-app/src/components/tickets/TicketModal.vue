@@ -1,9 +1,14 @@
 <template>
-  <div class="modal fade show" tabindex="-1">
+  <div class="modal fade show" tabindex="-1" :class="{ 'd-block': !hideModal, 'd-none': hideModal }">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ ticket ? 'Edit Ticket' : 'Add Ticket' }}</h5>
+          <h5 class="modal-title">
+            {{ (modalAction === 'ADD') ? 'Add' : '' }}
+            {{ ((modalAction === 'EDIT') ? 'Edit' : '') }}
+            {{ (modalAction === 'DELETE') ? 'Delete' : '' }}
+            Ticket
+          </h5>
           <button type="button" class="btn-close" @click.prevent="closeModal"></button>
         </div>
         <div class="modal-body">
@@ -18,7 +23,12 @@
                 placeholder="Ticket Name"
                 required
                 ref="nameInput"
+                @blur="validateName"
+                :disabled="(modalAction === 'DELETE')"
               />
+              <span class="error-placeholder">
+                <span v-if="nameError" class="error text-danger">{{ nameError }}</span>
+              </span>
             </div>
             <div class="mb-3">
               <label for="description" class="d-flex form-label text-start small-text mb-1">Description</label>
@@ -27,39 +37,46 @@
                 class="form-control"
                 id="description"
                 placeholder="Description"
-                rows="4"
+                rows="6"
+                :disabled="(modalAction === 'DELETE')"
               >
               </textarea>
-            </div>
-            <div class="mb-3">
-              <label for="organiser" class="d-flex form-label required text-start small-text mb-1">Organiser</label>
-              <select
-                v-model="formData.organiser_id"
-                class="form-control form-select"
-                required
-              >
-                <option v-for="org in organisers" :key="org.id" :value="org.id">{{ org.name }}</option>
-              </select>
             </div>
             <div class="mb-3">
               <label for="events" class="d-flex form-label text-start small-text mb-1">Events</label>
               <v-select
                 v-model="formData.selectedEvents"
-                :options="events"
+                placeholder="Select events"
                 label="name"
-                multiple
+                :options="events"
+                :get-option-label="(option) => customLabel(option)"
                 :close-on-select="false"
                 :clear-on-select="false"
                 :searchable="true"
-                @search="onEventsSearch"
-                :reduce="event => event.id"
-              />
+                :disabled="(modalAction === 'DELETE')"
+                multiple
+              ></v-select>
+              <!--
+              @search="onEventsSearch"
+              :reduce="event => event.id"
+              -->
             </div>
+            <span class="error-placeholder response-error mt-0 mb-4">
+              <span v-if="responseError" class="error text-danger">{{ responseError }}</span>
+            </span>
           </form>
         </div>
         <div class="modal-footer">
+          <p v-if="(modalAction === 'DELETE')" class="text-danger">Are you sure you want to delete this ticket?</p>
           <button type="button" class="btn btn-secondary" @click.prevent="closeModal">Close</button>
-          <button type="button" class="btn btn-primary" @click.prevent="saveTicket">Save</button>
+          <button
+            type="button"
+            class="btn"
+            :class="{ 'btn-primary': (modalAction !== 'DELETE'), 'btn-danger': (modalAction === 'DELETE') }"
+            @click.prevent="dispatchAction"
+          >
+            {{ (modalAction === 'DELETE') ? 'Delete' : 'Save' }}
+          </button>
         </div>
       </div>
     </div>
@@ -69,7 +86,6 @@
 
 <script>
 import { defineComponent } from 'vue'
-// import { mapState } from 'vuex'
 import vSelect from 'vue-select'
 import { useHelper } from '@/store/helpers'
 import 'vue-select/dist/vue-select.css'
@@ -80,12 +96,15 @@ export default defineComponent({
   },
   emits: [
     'close',
-    'save'
+    'dispatchAction'
   ],
   props: {
     ticket: Object,
     eventsFeed: Object,
-    organiserFeed: Object
+    organiserFeed: Object,
+    modalAction: String,
+    hideModal: Boolean,
+    responseError: String
   },
   setup () {
     // Destructure methods from the helper.
@@ -97,6 +116,11 @@ export default defineComponent({
       isObjectEmpty
     }
   },
+  computed: {
+    isFormValid () {
+      return !this.nameError
+    }
+  },
   data () {
     return {
       events: [],
@@ -106,22 +130,9 @@ export default defineComponent({
       formData: {
         name: this.ticket?.name || '',
         description: this.ticket?.description || '',
-        organiser_id: this.ticket?.organiser_id || '',
         selectedEvents: this.ticket?.events || []
       },
-      /*
-      organisers: [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' }
-        // Replace with your actual API data for organisers
-      ],
-      */
-      tags: [
-        { id: 1, name: 'Music' },
-        { id: 2, name: 'Festival' },
-        { id: 3, name: 'Conference' }
-        // Replace with actual tag data from your API
-      ]
+      nameError: ''
     }
   },
   mounted () {
@@ -143,23 +154,44 @@ export default defineComponent({
     }
   },
   methods: {
-    saveTicket () {
-      /*
+    validateName () {
+      this.nameError = this.formData.name !== ''
+        ? ''
+        : 'Ticket name is required field.'
+    },
+    dispatchAction () {
+      // Optionally, perform additional validation before submitting.
+      this.validateName()
+      if (!this.isFormValid) {
+        return
+      }
+
       const ticket = {
         ...this.formData,
-        organisers: this.organisers.find((org) => org.id === this.formData.organiser_id),
-        tags: this.tags.filter((tag) => this.formData.selectedEvents.includes(tag.id)),
-        id: this.ticket?.id || null,
-        created_at: this.ticket?.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        events: []
+        // @todo-Slavisa
+        // events: this.events.find((event) => event.id === this.formData.id)
+        // organisers: this.organisers.find((org) => org.id === this.formData.organiser_id),
+        // tags: this.tags.filter((tag) => this.formData.selectedEvents.includes(tag.id)),
       }
-      this.$emit('save', ticket)
-      */
+      if (this.formData.selectedEvents.length > 0) {
+        const events = this.formData.selectedEvents.map(
+          ({ id, name }) => ({ id, name })
+        )
+        ticket.events = events
+      }
+      delete ticket.selectedEvents
+      this.$emit('dispatchAction', ticket, this.ticket?.id)
     },
+    customLabel (option) {
+      return `[${option.isActive ? 'Active' : 'Inactive'}]: ${option.name}`
+    },
+    /*
     onEventsSearch (searchTerm) {
-      // Logic to search and update the tags, e.g., API call to fetch tags
-      console.log('Searching for tags:', searchTerm)
+      // Logic to search and update the events, e.g., API call to fetch tags.
+      // console.log('Searching for tags:', searchTerm)
     },
+    */
     closeModal () {
       this.$emit('close')
     },
@@ -174,20 +206,5 @@ export default defineComponent({
       document.body.classList.remove('disable-scroll')
     }
   }
-  /*
-  computed: {
-    ...mapState(
-      {
-        eventsFeed: (state) => state.eventsFeed
-      }
-    )
-  }
-  */
 })
 </script>
-
-<style scoped>
-.modal.show {
-  display: block;
-}
-</style>

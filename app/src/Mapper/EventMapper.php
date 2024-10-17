@@ -20,9 +20,15 @@ class EventMapper
     {
         $result = $entity ?: new Event();
         
-        $result->setName($dto->name);
-        $result->setIsActive($dto->isActive);
-
+        if ($dto->id !== null) {
+            $result->setId($dto->id);
+        }
+        if ($dto->name !== null) {
+            $result->setName($dto->name);
+        }
+        if ($dto->isActive !== null) {
+            $result->setIsActive($dto->isActive);
+        }
         if ($dto->description !== null) {
             $result->setDescription($dto->description !== '' ? $dto->description : null);
         }
@@ -47,15 +53,18 @@ class EventMapper
         return $result;
     }
 
+    /*
     public function mapEntityToInt(Event $event): int
     {
         return (int) $event->getId();
     }
+    */
 
     /**
      * @param  iterable<Event> $events
      * @return int[]
      */
+    /*
     public function mapEntitiesToIntArray(iterable $events): array
     {
         $result = [];
@@ -65,12 +74,39 @@ class EventMapper
         sort($result);
         return $result;
     }
+    */
+
+    /**
+     * @param  iterable<EventDto> $dtos
+     * @return Event[]
+     */
+    public function mapDtoArrayToEntityArray(iterable $dtos): array
+    {
+        $result = [];
+        foreach ($dtos as $dto) {
+            $result[] = $this->mapDtoToEntity($dto); 
+        }
+        return $result;
+
+        // Convert `PersistentCollection` to an array.
+        /*
+        $result = array_map(
+            fn($event) => [
+                'id'        => $event->getId(),
+                'name'      => $event->getName(),
+            ],
+            $events->toArray()
+        );
+        dd($result);
+        */
+        return $result;
+    }
 
     /**
      * @param  iterable<Event> $events
      * @return EventDto[]
      */
-    public function mapEntitiesToDtoArray(iterable $events): array
+    public function mapEntityArrayToDtoArray(iterable $events): array
     {
         $result = [];
         foreach ($events as $event) {

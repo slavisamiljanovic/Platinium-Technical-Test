@@ -25,7 +25,11 @@ class TicketMapper
     private function setEvents(Ticket $ticket, array $events): void
     {
         $oldEvents = $ticket->getEvents()->map(fn (Event $event) => $event->getId())->getValues();
-        $delEvents = array_diff($oldEvents, $events);
+        $newEvents = array_map(
+            fn(Event $event) => $event->getId(),
+            $this->eventMapper->mapDtoArrayToEntityArray($events)
+        );
+        $delEvents = array_diff($oldEvents, $newEvents);
 
         if (!empty($delEvents)) {
             foreach ($ticket->getEvents()->filter(fn (Event $event) => in_array($event->getId(), $delEvents)) as $event) {
@@ -33,7 +37,7 @@ class TicketMapper
             }
         }
 
-        $addEvents = array_diff($events, $oldEvents);
+        $addEvents = array_diff($newEvents, $oldEvents);
         if (!empty($addEvents)) {
             $events = $this->eventRepository->findEventsBy($addEvents);
             foreach ($events as $event) {
@@ -66,7 +70,7 @@ class TicketMapper
         $result->id          = $entity->getId();
         $result->name        = $entity->getName();
         $result->description = $entity->getDescription();
-        $result->events      = $this->eventMapper->mapEntitiesToDtoArray($entity->getEvents());
+        $result->events      = $this->eventMapper->mapEntityArrayToDtoArray($entity->getEvents());
         $result->createdAt   = $entity->getCreatedAt();
         $result->updatedAt   = $entity->getUpdatedAt();
 

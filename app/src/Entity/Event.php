@@ -45,7 +45,7 @@ class Event
         nullable: false,
         name: 'organiser_id',
         referencedColumnName: 'id',
-        onDelete: 'CASCADE'
+        // onDelete: 'CASCADE'
     )]
     private ?Organiser $organiser = null;
 
@@ -74,6 +74,13 @@ class Event
     public function getId(): int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getName(): string
@@ -170,6 +177,14 @@ class Event
         }
 
         return $this;
+    }
+
+    #[ORM\PreRemove]
+    public function removeTicketRelations()
+    {
+        foreach ($this->tickets as $ticket) {
+            $ticket->removeEvent($this);
+        }
     }
 
 }

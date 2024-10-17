@@ -1,142 +1,332 @@
 <template>
-  <div>
-    <h1 class="mt-5">Tickets List</h1>
-    <button @click="openModal(null)" class="btn btn-primary">Add Ticket</button>
-    <table class="table mt-3">
+  <div class="list-wrapper">
+    <h1 class="mt-2">Tickets List</h1>
+
+    <!-- Pagination controls. -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <a href="#" class="page-link" @click.prevent="goToPage(currentPage - 1)">Previous</a>
+        </li>
+        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+          <a href="#" class="page-link" @click.prevent="goToPage(page)">{{ page }}</a>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <a href="#" class="page-link" @click.prevent="goToPage(currentPage + 1)">Next</a>
+        </li>
+        <li class="page-item last-item">
+          <button @click.prevent="openModal(null)" class="btn btn-primary me-2">Add Ticket</button>
+          <button @click.prevent="openModal(null)" class="btn btn-primary me-2">Add Event</button>
+          <button @click.prevent="openModal(null)" class="btn btn-primary">Add Organiser</button>
+        </li>
+      </ul>
+    </nav>
+
+    <table class="table mt-3 table-list">
       <thead>
         <tr>
-          <th @click="sortBy('id')">ID <i :class="getSortClass('id')"></i></th>
-          <th @click="sortBy('name')">Name <i :class="getSortClass('name')"></i></th>
-          <th @click="sortBy('description')">Description <i :class="getSortClass('description')"></i></th>
-          <th @click="sortBy('organiser_id')">Organiser <i :class="getSortClass('organiser_id')"></i></th>
-          <th @click="sortBy('tags')">Tags <i :class="getSortClass('tags')"></i></th>
-          <th @click="sortBy('created_at')">Created At <i :class="getSortClass('created_at')"></i></th>
-          <th @click="sortBy('updated_at')">Updated At <i :class="getSortClass('updated_at')"></i></th>
-          <th>Actions</th>
+          <th class="id text-start"><a href="#" @click.prevent="sortBy('id')">ID <i :class="getSortClass('id')"></i></a></th>
+          <th class="text-start"><a href="#" @click.prevent="sortBy('name')">Name <i :class="getSortClass('name')"></i></a></th>
+          <th class="description text-start"><a href="#" @click.prevent="sortBy('description')">Description <i :class="getSortClass('description')"></i></a></th>
+          <th class="text-center ticket-events">Events</th>
+          <th class="text-end"><a href="#" @click.prevent="sortBy('createdAt')">Created At <i :class="getSortClass('createdAt')"></i></a></th>
+          <th class="text-end"><a href="#" @click.prevent="sortBy('updatedAt')">Updated At <i :class="getSortClass('updatedAt')"></i></a></th>
+          <th class="text-center">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="ticket in paginatedEvents" :key="ticket.id">
-          <td>{{ ticket.id }}</td>
-          <td>{{ ticket.name }}</td>
-          <td>{{ ticket.description }}</td>
-          <td>
-            <ul>
-              <li v-for="org in ticket.organisers" :key="org.id">{{ org.name }}</li>
-            </ul>
+        <tr
+          v-for="(ticket, index) in paginatedTickets"
+          :key="ticket.id"
+          :class="{'odd': helperIsOdd(index), 'even': !helperIsOdd(index)}"
+        >
+          <td class="id text-start">{{ ticket.id }}</td>
+          <td class="text-start">{{ ticket.name }}</td>
+          <td class="description text-start">{{ ticket.description }}</td>
+          <td class="text-center ticket-events">
+            <button v-if="ticket.events.length > 0" @click.prevent="openModal(ticket, true)" class="btn btn-sm btn-secondary">View Events</button>
+            <span v-if="ticket.events.length === 0" class="text-danger">No ticket-related events.</span>
           </td>
-          <td>
-            <ul>
-              <li v-for="tag in ticket.tags" :key="tag.id">{{ tag.name }}</li>
-            </ul>
+          <td class="text-end">{{ helperFormatDateTime(new Date(ticket.createdAt)) }}</td>
+          <td class="text-end">{{ helperFormatDateTime(new Date(ticket.updatedAt)) }}</td>
+          <td class="text-center">
+            <button @click.prevent="openModal(ticket)" class="btn btn-sm btn-secondary me-2">Edit</button>
+            <button @click.prevent="deleteEvent(ticket.id)" class="btn btn-sm btn-danger">Delete</button>
           </td>
-          <td>{{ ticket.created_at }}</td>
-          <td>{{ ticket.updated_at }}</td>
-          <td>
-            <button @click="openModal(ticket)" class="btn btn-sm btn-secondary">Edit</button>
-            <button @click="deleteEvent(ticket.id)" class="btn btn-sm btn-danger">Delete</button>
+        </tr>
+        <tr v-if="paginatedTickets.length === 0">
+          <td class="text-center" colspan="7">
+            <span class="text-danger">Currently, there are no tickets listed.</span>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Pagination Controls -->
+    <!-- Pagination controls. -->
     <nav aria-label="Page navigation">
       <ul class="pagination">
         <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" @click="goToPage(currentPage - 1)">Previous</a>
+          <a href="#" class="page-link" @click.prevent="goToPage(currentPage - 1)">Previous</a>
         </li>
         <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <a class="page-link" @click="goToPage(page)">{{ page }}</a>
+          <a href="#" class="page-link" @click.prevent="goToPage(page)">{{ page }}</a>
         </li>
         <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <a class="page-link" @click="goToPage(currentPage + 1)">Next</a>
+          <a href="#" class="page-link" @click.prevent="goToPage(currentPage + 1)">Next</a>
         </li>
       </ul>
     </nav>
   </div>
 
-  <!-- Modal for adding / editing tickets -->
+  <!-- Modal to view ticket-related events. -->
+  <EventsModal
+    v-if="isEventsModalOpen"
+    :data="selectedData"
+    @close="isEventsModalOpen = false"
+  />
+
+  <!-- Modal for adding / editing ticket. -->
   <TicketModal
-    v-if="isModalOpen"
-    :ticket="selectedTicket"
-    @close="isModalOpen = false"
+    v-if="isTicketModalOpen"
+    :data="selectedData"
+    @close="isTicketModalOpen = false"
     @save="saveEvent"
   />
 </template>
 
 <script>
-import axios from 'axios'
+import { watch, ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { useToast } from 'vue-toastification'
+import { useHelper } from '@/store/helpers'
+import { LIST_LIMIT, LIST_OFFSET } from '@/store/constants'
 import TicketModal from './TicketModal.vue'
-import helpers from '@/store/helpers'
+import EventsModal from '@/components/events/EventsModal.vue'
 
 export default {
   components: {
-    TicketModal
+    TicketModal,
+    EventsModal
   },
-  // Call these methods in mounted
-  async mounted () {
-    // Subscribe to loading state
-    helpers.loaderSubscribe((isLoading) => {
-      this.isLoading = isLoading
+  setup () {
+    // Access Vuex store.
+    const store = useStore()
+
+    // Access Vue route.
+    const route = useRoute()
+
+    // Access Vue router.
+    const router = useRouter()
+
+    // Get toast interface.
+    const toast = useToast()
+
+    // Destructure methods from the helper.
+    const {
+      helperIsOdd,
+      helperFormatDateTime,
+      handleApiError
+    } = useHelper()
+
+    const tickets = ref([])
+    const ticketsCount = ref(0)
+
+    const selectedData = ref(null)
+    const isEventsModalOpen = ref(false)
+    const isTicketModalOpen = ref(false)
+
+    const currentPage = ref(1) // Default value for current page number.
+    const perPage = LIST_LIMIT // Number of items per page.
+    const sortKey = ref('updatedAt') // Current column to sort by.
+    const sortOrder = ref('desc') // Sort order: 'asc' or 'desc'.
+
+    /**
+     * Watchers: Watch for route query changes.
+     */
+    watch(() => route.params.currentPage, (newPage) => {
+      fetchTickets(perPage, (newPage - 1) * perPage)
     })
-    await this.fetchEvents()
-    await this.fetchOrganizers()
-    await this.fetchTags()
-  },
-  data () {
-    return {
-      tickets: [
-        {
-          id: 1,
-          name: 'Music Festival',
-          description: 'Outdoor concert',
-          organiser_id: 1,
-          tags: [
-            {
-              id: 1,
-              name: 'Music'
-            },
-            {
-              id: 2,
-              name: 'Festival'
-            }
-          ],
-          created_at: '2023-10-10',
-          updated_at: '2023-10-11'
-        },
-        {
-          id: 2,
-          name: 'Tech Conference',
-          description: 'Industry insights',
-          organiser_id: 2,
-          tags: [
-            {
-              id: 3,
-              name: 'Conference'
-            }
-          ],
-          created_at: '2023-10-12',
-          updated_at: '2023-10-13'
-        }
-        // More tickets...
-      ],
-      organisers: [],
-      tags: [],
-      isModalOpen: false,
-      selectedEvent: null,
-      sortKey: '', // Current column to sort by.
-      sortOrder: 'asc', // Sort order: 'asc' or 'desc'.
-      currentPage: 1, // Current page number.
-      perPage: 50, // Number of items per page.
-      isLoading: true
+
+    /**
+     * Regular Methods.
+     */
+    const fetchTickets = async (limit, offset) => {
+      limit = limit || LIST_LIMIT
+      offset = offset || LIST_OFFSET
+
+      // Request params.
+      const requestParams = {
+        limit,
+        offset
+      }
+      await store.dispatch('fetchTickets', requestParams)
+        .then(
+          (response) => {
+            tickets.value = response.data.tickets
+            ticketsCount.value = response.data.ticketsCount
+            // toast.info('Tickets list fetched successfully.')
+          }
+        )
+        .catch(error => {
+          // Handle error response.
+          toast.error(handleApiError(error, 'Failed to fetch the list of tickets.'))
+        })
     }
-  },
+
+    const fetchTicket = (ticketId, viewEvents) => {
+      store.dispatch('fetchTicket', ticketId)
+        .then(
+          (response) => {
+            const ticket = response.data.ticket
+            selectedData.value = { ...ticket }
+            // this.toast.info('Ticket fetched successfully.')
+            if (viewEvents) {
+              isEventsModalOpen.value = true
+            } else {
+              isTicketModalOpen.value = true
+            }
+          }
+        )
+        .catch(error => {
+          // Handle error response.
+          this.toast.error(this.handleApiError(error, 'Failed to fetch the list of tickets.'))
+        })
+    }
+
+    const openModal = (ticket, viewEvents) => {
+      // Clone the ticket or set to NULL for NEW.
+      selectedData.value = ticket ? { ...ticket } : null
+      // Fetch entire ticket.
+      fetchTicket(selectedData.value.id, viewEvents)
+    }
+
+    const fetchEventsFeed = () => {
+      store.dispatch('fetchEventsFeed')
+        .then(
+          () => {
+            // toast.info('Events feed list fetched successfully.')
+          }
+        )
+        .catch(error => {
+          // Handle error response.
+          toast.error(this.handleApiError(error, 'Failed to fetch the events feed list.'))
+        })
+    }
+
+    const fetchOrganisersFeed = () => {
+      store.dispatch('fetchOrganisersFeed')
+        .then(
+          () => {
+            // toast.info('Events feed list fetched successfully.')
+          }
+        )
+        .catch(error => {
+          // Handle error response.
+          toast.error(this.handleApiError(error, 'Failed to fetch the organisers feed list.'))
+        })
+    }
+
+    const sortBy = (column) => {
+      if (sortKey.value === column) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+      } else {
+        sortKey.value = column
+        sortOrder.value = 'asc'
+      }
+    }
+
+    const getSortClass = (column) => {
+      if (sortKey.value === column) {
+        return sortOrder.value === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'
+      }
+      return ''
+    }
+
+    const goToPage = (page) => {
+      if (page > 0 && page <= totalPages.value) {
+        currentPage.value = page
+        router.push({ name: 'tickets', params: { currentPage: currentPage.value } })
+      }
+    }
+
+    /**
+     * Computed methods.
+     */
+    const sortedTickets = computed(() => {
+      const sorted = [...tickets.value].sort((a, b) => {
+        const modifier = sortOrder.value === 'asc' ? 1 : -1
+        /*
+        if (this.sortKey === 'events') {
+          return (
+            (a[this.sortKey].length - b[this.sortKey].length) * modifier
+          )
+        }
+        */
+        if (a[sortKey.value] < b[sortKey.value]) return -1 * modifier
+        if (a[sortKey.value] > b[sortKey.value]) return 1 * modifier
+        return 0
+      })
+      return sorted
+    })
+
+    const paginatedTickets = computed(() => {
+      /*
+      const start = (this.currentPage - 1) * this.perPage
+      const end = start + this.perPage
+      return this.sortedTickets.slice(start, end)
+      */
+      return sortedTickets.value
+    })
+
+    const totalPages = computed(() => {
+      return Math.ceil(ticketsCount.value / perPage)
+    })
+
+    /**
+     * onMounted lifecycle hook: Executes when the component is mounted.
+     */
+    onMounted(() => {
+      // Current page based on route parameter.
+      currentPage.value = Number(route.params.currentPage) || 1
+
+      // Fetch the paginated tickets list.
+      fetchTickets(perPage, (currentPage.value - 1) * perPage)
+
+      // Fetch and store all events in the Vuex store.
+      fetchEventsFeed()
+
+      // Fetch and store all organisers in the Vuex store.
+      fetchOrganisersFeed()
+    })
+
+    return {
+      toast,
+      tickets,
+      ticketsCount,
+      currentPage,
+      perPage,
+      sortKey,
+      sortOrder,
+      paginatedTickets,
+      totalPages,
+      sortBy,
+      getSortClass,
+      goToPage,
+      selectedData,
+      isEventsModalOpen,
+      isTicketModalOpen,
+      helperIsOdd,
+      helperFormatDateTime,
+      handleApiError,
+      fetchTickets,
+      fetchEventsFeed,
+      fetchOrganisersFeed,
+      openModal
+    }
+  }
+  /*
   methods: {
-    openModal (ticket) {
-      this.selectedEvent = ticket ? { ...ticket } : null // Clone the ticket or set to null for new
-      this.isModalOpen = true
-    },
     saveEvent (ticket) {
       if (ticket.id) {
         // Edit existing ticket
@@ -149,7 +339,7 @@ export default {
         ticket.id = this.tickets.length + 1 // Temporary ID, adjust with real API logic
         this.tickets.push(ticket)
       }
-      this.isModalOpen = false
+      this.isTicketModalOpen = false
     },
     async deleteEvent (eventId) {
       const confirmed = confirm('Are you sure you want to delete this ticket?')
@@ -162,102 +352,8 @@ export default {
           console.error('Error deleting ticket:', error)
         }
       }
-    },
-    sortBy (column) {
-      if (this.sortKey === column) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
-      } else {
-        this.sortKey = column
-        this.sortOrder = 'asc'
-      }
-    },
-    getSortClass (column) {
-      if (this.sortKey === column) {
-        return this.sortOrder === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'
-      }
-      return ''
-    },
-    goToPage (page) {
-      if (page > 0 && page <= this.totalPages) {
-        this.currentPage = page
-      }
-    },
-    async fetchEvents () {
-      helpers.loaderStartLoading() // Start loading
-      try {
-        const response = await axios.get('/api/tickets') // Replace with your actual API endpoint
-        this.tickets = response.data // Assuming the API returns an array of tickets
-      } catch (error) {
-        console.error('Error fetching tickets:', error)
-      } finally {
-        helpers.loaderStopLoading() // End loading
-      }
-    },
-    async fetchOrganizers () {
-      helpers.loaderStartLoading() // Start loading
-      try {
-        const response = await axios.get('/api/organisers') // Replace with your actual API endpoint
-        this.organisers = response.data // Assuming the API returns an array of organisers
-      } catch (error) {
-        console.error('Error fetching organisers:', error)
-      } finally {
-        helpers.loaderStopLoading() // End loading
-      }
-    },
-    async fetchTags () {
-      helpers.loaderStartLoading() // Start loading
-      try {
-        const response = await axios.get('/api/tags') // Replace with your actual API endpoint
-        this.tags = response.data // Assuming the API returns an array of tags
-      } catch (error) {
-        console.error('Error fetching tags:', error)
-      } finally {
-        helpers.loaderStopLoading() // End loading
-      }
     }
-  },
-  computed: {
-    sortedEvents () {
-      const sorted = [...this.tickets].sort((a, b) => {
-        const modifier = this.sortOrder === 'asc' ? 1 : -1
-        if (this.sortKey === 'tags') {
-          return (
-            (a[this.sortKey].length - b[this.sortKey].length) * modifier
-          )
-        }
-        if (a[this.sortKey] < b[this.sortKey]) return -1 * modifier
-        if (a[this.sortKey] > b[this.sortKey]) return 1 * modifier
-        return 0
-      })
-      return sorted
-    },
-    paginatedEvents () {
-      const start = (this.currentPage - 1) * this.perPage
-      const end = start + this.perPage
-      return this.sortedEvents.slice(start, end)
-    },
-    totalPages () {
-      return Math.ceil(this.tickets.length / this.perPage)
-    }
-  },
-  beforeUnmount () {
-    // Unsubscribe to avoid memory leaks
-    helpers.loaderUnsubscribe()
   }
+  */
 }
 </script>
-
-<style scoped>
-.table {
-  width: 100%;
-}
-/* Optional sorting icons styling (Bootstrap Icons) */
-/*
-.bi-sort-up::before {
-  content: "\f0de";
-}
-.bi-sort-down::before {
-  content: "\f0dd";
-}
-*/
-</style>
