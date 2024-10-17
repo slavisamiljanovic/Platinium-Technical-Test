@@ -107,16 +107,28 @@ FROM node:22-alpine AS vue-app
 # Set working directory inside the container.
 WORKDIR /app
 
-ARG APP_USER
-ARG APP_USER_ID
-RUN adduser --disabled-password -u ${APP_USER_ID} ${APP_USER} && \
-    chown ${APP_USER}:${APP_USER} -R /app
+# Copy package.json and package-lock.json to the container.
+COPY ./frontend/package*.json ./
 
-ARG APP_USER
-USER ${APP_USER}
-    
+# Install dependencies.
+RUN npm install --legacy-peer-deps
+
+# Copy the Vue.js project files to the container.
+COPY . .
+
+# Build the Vue.js app for production.
+# RUN npm run build
+
+# ARG APP_USER
+# ARG APP_USER_ID
+# RUN adduser --disabled-password -u ${APP_USER_ID} ${APP_USER} && \
+#     chown ${APP_USER}:${APP_USER} -R /app
+
+# ARG APP_USER
+# USER ${APP_USER}
+  
 # Expose port 8080 for Vue dev server.
-EXPOSE 8080
+# EXPOSE 8080
 
 # Default command: Run shell to allow interactive commands.
 CMD [ "sh" ]

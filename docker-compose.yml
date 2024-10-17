@@ -4,7 +4,7 @@ services:
   # ----------------------------------------------------------------------------
   app:
     build:
-      context: ./app
+      context: .
       dockerfile: Dockerfile
       target: app_prod
       args:
@@ -13,8 +13,8 @@ services:
     container_name: app-backend-api
     restart: unless-stopped
     environment:
-      - DATABASE_URL=mysql://root:root@db:3306/${DB_NAME:-db-technical-test}?serverVersion=5.7.44&charset=utf8mb4
-      # - DATABASE_URL=mysql://${DB_USER:-db-technical-test}:${DB_PSWD:-db-technical-test}@db:3306/${DB_NAME:-db-technical-test}?serverVersion=5.7.44&charset=utf8mb4
+      # - DATABASE_URL=mysql://root:root@db:3306/${DB_NAME:-db-technical-test}?serverVersion=5.7.44&charset=utf8mb4
+      - DATABASE_URL=mysql://${DB_USER:-db-technical-test}:${DB_PSWD:-db-technical-test}@db:3306/${DB_NAME:-db-technical-test}?serverVersion=5.7.44&charset=utf8mb4
     depends_on:
       - db
     networks:
@@ -32,8 +32,8 @@ services:
     environment:
       - MYSQL_DATABASE=${DB_NAME:-db-technical-test}
       - LANG=C.UTF_8
-      - MYSQL_USER=root       # ${DB_USER:-db-technical-test}
-      - MYSQL_PASSWORD=root   # ${DB_PSWD:-db-technical-test}
+      - MYSQL_USER=${DB_USER:-db-technical-test}
+      - MYSQL_PASSWORD=${DB_PSWD:-db-technical-test}
       - MYSQL_ROOT_PASSWORD=root
     volumes:
       - technical-test-db-data:/var/lib/mysql
@@ -47,7 +47,7 @@ services:
   # ----------------------------------------------------------------------------
   vue-app:
     build:
-      context: ./app
+      context: .
       dockerfile: Dockerfile
       target: vue-app
       args:
@@ -58,9 +58,9 @@ services:
     depends_on:
       - app
     volumes:
-      - ./app/vue-app:/app
+      - ./frontend:/app
     ports:
-      - "8080:8080"
+      - "58081:8080"
     networks:
       - frontend
       - backend
@@ -74,7 +74,7 @@ services:
   # ----------------------------------------------------------------------------
   proxy:
     build:
-      context: ./app
+      context: .
       dockerfile: Dockerfile
       target: proxy
       args:

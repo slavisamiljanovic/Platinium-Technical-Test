@@ -6,7 +6,7 @@ services:
     build:
       target: app_dev
     volumes:
-      - ./app:/var/www/html
+      - ./backend:/var/www/html
       ### Use var directory to add necessary configs such as xdebug
       # - ./var/app/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
       ### Uncomment below to use your composer cache
@@ -20,9 +20,9 @@ services:
   # ----------------------------------------------------------------------------
   # Database.
   # ----------------------------------------------------------------------------
-  db:
-    ports:
-      - 3306:3306
+  # db:
+  #   ports:
+  #     - 3306:3306
   # ----------------------------------------------------------------------------
 
   # ----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ services:
   # ----------------------------------------------------------------------------
   proxy:
     volumes:
-      - ./app/public:/var/www/html/public
+      - ./backend/public:/var/www/html/public
   # ----------------------------------------------------------------------------
 
 volumes:
