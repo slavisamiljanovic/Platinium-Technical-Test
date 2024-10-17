@@ -332,7 +332,6 @@ export default createStore({
     fetchEvents (_, requestParams) {
       // Start loading.
       loaderStartLoading()
-
       return new Promise((resolve, reject) => {
         axios(
           {
@@ -347,11 +346,37 @@ export default createStore({
         )
           .then(
             response => {
-              loggerService.log('$store.dispatch(fetchEvents) -> response', { logType: 'info', logData: response })
-
               // End loading.
+              loggerService.log('$store.dispatch(fetchEvents) -> response', { logType: 'info', logData: response })
               loaderStopLoading()
-
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    saveEvent (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        delete data.eventId
+        axios(
+          {
+            url: this.state.apiURL + 'events',
+            method: 'POST',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(saveEvent) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
               resolve(response)
             }
           )
@@ -387,10 +412,93 @@ export default createStore({
           })
       })
     },
+    fetchEvent (_, eventId) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        axios(
+          {
+            url: this.state.apiURL + `events/${eventId}`,
+            method: 'GET',
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(fetchEvent) -> response', { logType: 'info', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    updateEvent (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        const eventId = data.eventId
+        delete data.eventId
+        axios(
+          {
+            url: this.state.apiURL + `events/${eventId}`,
+            method: 'PUT',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(updateEvent) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    deleteEvent (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        const eventId = data.eventId
+        delete data.eventId
+        axios(
+          {
+            url: this.state.apiURL + `events/${eventId}`,
+            method: 'DELETE',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(deleteEvent) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
     fetchOrganisers (_, requestParams) {
       // Start loading.
       loaderStartLoading()
-
       return new Promise((resolve, reject) => {
         axios(
           {
@@ -405,11 +513,37 @@ export default createStore({
         )
           .then(
             response => {
-              loggerService.log('$store.dispatch(fetchOrganisers) -> response', { logType: 'info', logData: response })
-
               // End loading.
+              loggerService.log('$store.dispatch(fetchOrganisers) -> response', { logType: 'info', logData: response })
               loaderStopLoading()
-
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    saveOrganiser (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        delete data.organiserId
+        axios(
+          {
+            url: this.state.apiURL + 'organisers',
+            method: 'POST',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(saveOrganiser) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
               resolve(response)
             }
           )
@@ -441,6 +575,90 @@ export default createStore({
             }
           )
           .catch(error => {
+            reject(error)
+          })
+      })
+    },
+    fetchOrganiser (_, organiserId) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        axios(
+          {
+            url: this.state.apiURL + `organisers/${organiserId}`,
+            method: 'GET',
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(fetchOrganiser) -> response', { logType: 'info', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    updateOrganiser (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        const organiserId = data.organiserId
+        delete data.organiserId
+        axios(
+          {
+            url: this.state.apiURL + `organisers/${organiserId}`,
+            method: 'PUT',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(updateOrganiser) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
+            reject(error)
+          })
+      })
+    },
+    deleteOrganiser (_, data) {
+      // Start loading.
+      loaderStartLoading()
+      return new Promise((resolve, reject) => {
+        const organiserId = data.organiserId
+        delete data.organiserId
+        axios(
+          {
+            url: this.state.apiURL + `organisers/${organiserId}`,
+            method: 'DELETE',
+            data: data,
+            headers: { Authorization: 'Token ' + this.state.token }
+          }
+        )
+          .then(
+            response => {
+              // End loading.
+              loggerService.log('$store.dispatch(deleteOrganiser) -> response', { logType: 'debug', logData: response })
+              loaderStopLoading()
+              resolve(response)
+            }
+          )
+          .catch(error => {
+            // End loading.
+            loaderStopLoading()
             reject(error)
           })
       })

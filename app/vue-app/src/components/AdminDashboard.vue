@@ -16,7 +16,7 @@
           <div class="card-body">
             <h5 class="card-title">Manage Events <span v-if="eventsCount !== null">({{ eventsCount }})</span></h5>
             <p class="card-text">Create, edit, or delete events.</p>
-            <router-link to="/events" class="btn btn-primary">Go to Events</router-link>
+            <router-link to="/events/1" class="btn btn-primary">Go to Events</router-link>
           </div>
         </div>
       </div>
@@ -25,7 +25,7 @@
           <div class="card-body">
             <h5 class="card-title">Manage Organisers <span v-if="organisersCount !== null">({{ organisersCount }})</span></h5>
             <p class="card-text">Create, edit, or delete organisers.</p>
-            <router-link to="/organisers" class="btn btn-primary">Go to Organisers</router-link>
+            <router-link to="/organisers/1" class="btn btn-primary">Go to Organisers</router-link>
           </div>
         </div>
       </div>

@@ -4,7 +4,6 @@ import {
   RouteRecordRaw
 } from 'vue-router'
 import {
-  AdminDashboardView,
   HomeView,
   AdminLoginView
 } from '@/views'
@@ -41,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: AdminDashboardView,
+    component: () => import(/* webpackChunkName: "events" */ '@/views/AdminDashboardView.vue'),
     meta: {
       title: 'Admin Dashboard',
       requiresAuth: true
@@ -50,25 +49,25 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/tickets/:currentPage',
     name: 'tickets',
-    component: () => import(/* webpackChunkName: "events" */ '@/views/tickets/TicketsListView.vue'),
+    component: () => import(/* webpackChunkName: "events" */ '@/views/TicketsListView.vue'),
     meta: {
       title: 'Manage Tickets',
       requiresAuth: true
     }
   },
   {
-    path: '/events',
+    path: '/events/:currentPage',
     name: 'events',
-    component: () => import(/* webpackChunkName: "events" */ '@/views/tickets/TicketsListView.vue'),
+    component: () => import(/* webpackChunkName: "events" */ '@/views/EventsListView.vue'),
     meta: {
       title: 'Manage Events',
       requiresAuth: true
     }
   },
   {
-    path: '/organisers',
+    path: '/organisers/:currentPage',
     name: 'organisers',
-    component: () => import(/* webpackChunkName: "events" */ '@/views/tickets/TicketsListView.vue'),
+    component: () => import(/* webpackChunkName: "events" */ '@/views/OrganisersListView.vue'),
     meta: {
       title: 'Manage Organisers',
       requiresAuth: true

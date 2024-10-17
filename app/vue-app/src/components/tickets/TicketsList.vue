@@ -225,20 +225,10 @@ export default {
             break
         }
       } else if (params[1] === 'EVENT') {
-        // TODO:
+        // @todo: Add option to create an event from the tickets list page.
       } else if (params[1] === 'ORGANISER') {
-        // TODO:
+        // @todo: Add option to create a organiser from the tickets list page.
       }
-      console.log(params)
-      /*
-      ADD_TICKET
-      EDIT_TICKET
-      VIEW_TICKET
-      DELETE_TICKET
-
-      ADD_EVENT
-      ADD_ORGANISER
-      */
     }
 
     const fetchEventsFeed = () => {
@@ -450,21 +440,5 @@ export default {
       responseError
     }
   }
-  /*
-  methods: {
-    async deleteEvent (eventId) {
-      const confirmed = confirm('Are you sure you want to delete this ticket?')
-      if (confirmed) {
-        try {
-          this.tickets = this.tickets.filter((ticket) => ticket.id !== eventId)
-          await axios.delete(`/api/tickets/${eventId}`) // Replace with your actual API endpoint
-          this.fetchEvents() // Refresh the tickets list after deletion
-        } catch (error) {
-          console.error('Error deleting ticket:', error)
-        }
-      }
-    }
-  }
-  */
 }
 </script>

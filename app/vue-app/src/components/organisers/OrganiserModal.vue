@@ -1,191 +1,291 @@
 <template>
-  <div class="modal fade show" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ ticket ? 'Edit Ticket' : 'Add Ticket' }}</h5>
-          <button type="button" class="btn-close" @click.prevent="closeModal"></button>
-        </div>
-        <div class="modal-body">
-          <form @submit.prevent="save" class="form-group mt-3">
-            <div class="mb-3">
-              <label for="name" class="d-flex form-label required text-start small-text mb-1">Ticket Name</label>
-              <input
-                v-model="formData.name"
-                type="text"
-                class="form-control"
-                id="name"
-                placeholder="Ticket Name"
-                required
-                ref="nameInput"
-              />
-            </div>
-            <div class="mb-3">
-              <label for="description" class="d-flex form-label text-start small-text mb-1">Description</label>
-              <textarea
-                v-model="formData.description"
-                class="form-control"
-                id="description"
-                placeholder="Description"
-                rows="4"
-              >
-              </textarea>
-            </div>
-            <div class="mb-3">
-              <label for="organiser" class="d-flex form-label required text-start small-text mb-1">Organiser</label>
-              <v-select
-                v-model="formData.selectedEvents"
-                :options="organisers"
-                label="name"
-                :close-on-select="true"
-                :clear-on-select="false"
-                :searchable="true"
-                @search="onOrganisersSearch"
-                :reduce="organiser => organiser.id"
-              />
-              <!--
-              <select
-                v-model="formData.selectedOrganiser"
-                class="form-control form-select"
-                required
-              >
-                <option v-for="org in organisers" :key="org.id" :value="org.id">{{ org.name }}</option>
-              </select>
-              -->
-            </div>
-            <div class="mb-3">
-              <label for="events" class="d-flex form-label text-start small-text mb-1">Events</label>
-              <v-select
-                v-model="formData.selectedEvents"
-                :options="events"
-                label="name"
-                multiple
-                :close-on-select="false"
-                :clear-on-select="false"
-                :searchable="true"
-                @search="onEventsSearch"
-                :reduce="event => event.id"
-              />
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click.prevent="closeModal">Close</button>
-          <button type="button" class="btn btn-primary" @click.prevent="saveTicket">Save</button>
+  <div :class="{ 'd-block': !hideModal, 'd-none': hideModal }">
+    <div class="modal fade show" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {{ (modalAction === 'ADD') ? 'Add' : '' }}
+              {{ ((modalAction === 'EDIT') ? 'Edit' : '') }}
+              {{ (modalAction === 'DELETE') ? 'Delete' : '' }}
+              Organiser
+            </h5>
+            <button type="button" class="btn-close" @click.prevent="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="save" class="form-group mt-3">
+              <div class="mb-3">
+                <label for="name" class="d-flex form-label required text-start small-text mb-1">Organiser Name</label>
+                <input
+                  v-model="formData.name"
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  placeholder="Organiser Name"
+                  required
+                  ref="nameInput"
+                  @blur="validateName"
+                  :disabled="(modalAction === 'DELETE')"
+                />
+                <span class="error-placeholder">
+                  <span v-if="nameError" class="error text-danger">{{ nameError }}</span>
+                </span>
+              </div>
+              <div class="mb-3">
+                <label for="city" class="d-flex form-label required text-start small-text mb-1">Organiser City</label>
+                <input
+                  v-model="formData.city"
+                  type="text"
+                  class="form-control"
+                  id="city"
+                  placeholder="Organiser City"
+                  required
+                  @blur="validateCity"
+                  :disabled="(modalAction === 'DELETE')"
+                />
+                <span class="error-placeholder">
+                  <span v-if="cityError" class="error text-danger">{{ cityError }}</span>
+                </span>
+              </div>
+              <div class="mb-3">
+                <label for="phone" class="d-flex form-label text-start small-text mb-1">Organiser Phone</label>
+                <input
+                  v-model="formData.phone"
+                  type="text"
+                  class="form-control"
+                  id="phone"
+                  placeholder="Organiser Phone"
+                  :disabled="(modalAction === 'DELETE')"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="description" class="d-flex form-label text-start small-text mb-1">Description</label>
+                <textarea
+                  v-model="formData.description"
+                  class="form-control"
+                  id="description"
+                  placeholder="Description"
+                  rows="6"
+                  :disabled="(modalAction === 'DELETE')"
+                >
+                </textarea>
+              </div>
+              <span class="error-placeholder response-error mt-0 mb-4">
+                <span v-if="responseError" class="error text-danger">{{ responseError }}</span>
+              </span>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <p v-if="(modalAction === 'DELETE')" class="text-danger">Are you sure you want to delete this organiser?</p>
+            <button type="button" class="btn btn-secondary" @click.prevent="closeModal">Close</button>
+            <button
+              type="button"
+              class="btn"
+              :class="{ 'btn-primary': (modalAction !== 'DELETE'), 'btn-danger': (modalAction === 'DELETE') }"
+              @click.prevent="submitAction"
+            >
+              {{ (modalAction === 'DELETE') ? 'Delete' : 'Save' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
+    <div class="modal-backdrop fade show"></div>
   </div>
-  <div class="modal-backdrop fade show"></div>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
-// import { mapState } from 'vuex'
-import vSelect from 'vue-select'
+import { ref, getCurrentInstance, onMounted, defineComponent, computed } from 'vue'
+import { useStore } from 'vuex'
+import { useToast } from 'vue-toastification'
 import { useHelper } from '@/store/helpers'
-import 'vue-select/dist/vue-select.css'
 
 export default defineComponent({
-  components: {
-    vSelect
-  },
-  emits: [
-    'close',
-    'save'
-  ],
   props: {
-    ticket: Object,
-    eventsFeed: Object,
-    organiserFeed: Object
+    organiser: Object,
+    modalAction: String
   },
-  setup () {
+  setup (props, { emit }) {
+    // Access Vuex store.
+    const store = useStore()
+
+    // Get toast interface.
+    const toast = useToast()
+
     // Destructure methods from the helper.
-    const {
-      isObjectEmpty
-    } = useHelper()
+    const { handleApiError } = useHelper()
 
-    return {
-      isObjectEmpty
-    }
-  },
-  data () {
-    return {
-      events: [],
-      eventsCount: 0,
-      organisers: [],
-      organisersCount: 0,
-      formData: {
-        name: this.ticket?.name || '',
-        description: this.ticket?.description || '',
-        selectedOrganiser: this.ticket?.organiser || '',
-        selectedEvents: this.ticket?.events || []
-      }
-    }
-  },
-  mounted () {
-    console.log('slavisa --> debug --> formData: ', this.formData)
-    // Add event listener on mount.
-    document.addEventListener('keydown', this.handleKeydown)
-    document.body.classList.add('disable-scroll')
+    const hideModal = ref(false)
+    const formData = ref({
+      name: props.organiser?.name || '',
+      city: props.organiser?.city || '',
+      phone: props.organiser?.phone || '',
+      description: props.organiser?.description || ''
+    })
+    const nameError = ref('')
+    const cityError = ref('')
+    const responseError = ref(null) // Response error.
 
-    // Focus the name input field when the component is mounted.
-    this.$refs.nameInput.focus()
-
-    if (!this.isObjectEmpty(this.$store.state.eventsFeed)) {
-      this.events = this.$store.state.eventsFeed.events
-      this.eventsCount = this.$store.state.eventsFeed.eventsCount
+    // Create a ref for the input element.
+    const nameInput = ref(null)
+    const instance = getCurrentInstance()
+    const focusNameInput = () => {
+      setTimeout(
+        () => {
+          instance.refs.nameInput.focus()
+        }, 250
+      )
     }
 
-    if (!this.isObjectEmpty(this.$store.state.organisersFeed)) {
-      this.organisers = this.$store.state.organisersFeed.organisers
-      this.organisersCount = this.$store.state.organisersFeed.organisersCount
-    }
-  },
-  methods: {
-    saveTicket () {
-      /*
-      const ticket = {
-        ...this.formData,
-        organisers: this.organisers.find((org) => org.id === this.formData.organiser_id),
-        tags: this.tags.filter((tag) => this.formData.selectedEvents.includes(tag.id)),
-        id: this.ticket?.id || null,
-        created_at: this.ticket?.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-      this.$emit('save', ticket)
-      */
-    },
-    onOrganisersSearch (searchTerm) {
-      // Logic to search and update the tags, e.g., API call to fetch tags
-      console.log('Searching for tags:', searchTerm)
-    },
-    onEventsSearch (searchTerm) {
-      // Logic to search and update the tags, e.g., API call to fetch tags
-      console.log('Searching for tags:', searchTerm)
-    },
-    closeModal () {
-      this.$emit('close')
-    },
-    handleKeydown (event) {
+    /**
+     * Regular Methods.
+     */
+    const handleKeydown = (event) => {
       if (event.key === 'Escape') {
-        this.closeModal()
+        closeModal()
       }
-    },
-    beforeUnmount () {
-      // Clean up the event listener.
-      document.removeEventListener('keydown', this.handleKeydown)
-      document.body.classList.remove('disable-scroll')
     }
-  }
-  /*
-  computed: {
-    ...mapState(
-      {
-        eventsFeed: (state) => state.eventsFeed
+
+    const closeModal = () => {
+      emit('close')
+    }
+
+    const validateName = () => {
+      nameError.value = formData.value.name !== ''
+        ? ''
+        : 'Organiser name is required field.'
+    }
+
+    const validateCity = () => {
+      cityError.value = formData.value.city !== ''
+        ? ''
+        : 'Organiser city is required field.'
+    }
+
+    const submitAction = () => {
+      // Optionally, perform additional validation before submitting.
+      validateName()
+      validateCity()
+      if (!isFormValid.value) {
+        return
       }
-    )
+
+      const organiserId = props.organiser?.id
+      const organiser = { ...formData.value }
+      dispatchAction(organiser, organiserId)
+    }
+
+    const dispatchAction = async (organiser, organiserId) => {
+      hideModal.value = true
+      if (props.modalAction === 'ADD') {
+        // Creating a new data.
+        // Request params.
+        const requestParams = {
+          organiser
+        }
+        await store.dispatch('saveOrganiser', requestParams)
+          .then(
+            () => {
+              hideModal.value = false
+              toast.success('The organiser has been created successfully.')
+              closeModal()
+              emit('dispatchParent')
+            }
+          )
+          .catch(error => {
+            // Handle error response.
+            hideModal.value = false
+            responseError.value = handleApiError(error, 'Failed to save the organiser.')
+            toast.error(responseError.value)
+          })
+      } else if (props.modalAction === 'EDIT') {
+        // Updating an existing data.
+        // Request params.
+        const requestParams = {
+          organiser,
+          organiserId
+        }
+        await store.dispatch('updateOrganiser', requestParams)
+          .then(
+            () => {
+              hideModal.value = false
+              toast.success('The organiser has been saved successfully.')
+              closeModal()
+              emit('dispatchParent')
+            }
+          )
+          .catch(error => {
+            // Handle error response.
+            hideModal.value = false
+            responseError.value = handleApiError(error, 'Failed to save the organiser.')
+            toast.error(responseError.value)
+          })
+      } else if (props.modalAction === 'DELETE') {
+        // Updating an existing data.
+        // Request params.
+        const requestParams = {
+          organiser,
+          organiserId
+        }
+        await store.dispatch('deleteOrganiser', requestParams)
+          .then(
+            () => {
+              hideModal.value = false
+              toast.success('The organiser has been deleted successfully.')
+              closeModal()
+              emit('dispatchParent')
+            }
+          )
+          .catch(error => {
+            // Handle error response.
+            hideModal.value = false
+            responseError.value = handleApiError(error, 'Failed to delete the organiser.')
+            toast.error(responseError.value)
+          })
+      }
+    }
+
+    /**
+     * Computed methods.
+     */
+    const isFormValid = computed(() => {
+      return !nameError.value && !cityError.value
+    })
+
+    /**
+     * onMounted lifecycle hook: Executes when the component is mounted.
+     */
+    onMounted(() => {
+      // Add event listener on mount.
+      document.addEventListener('keydown', handleKeydown)
+      document.body.classList.add('disable-scroll')
+
+      responseError.value = null
+      hideModal.value = false
+      focusNameInput()
+    })
+
+    return {
+      hideModal,
+      formData,
+      nameError,
+      cityError,
+      nameInput,
+      responseError,
+      closeModal,
+      focusNameInput,
+      handleKeydown,
+      validateName,
+      validateCity,
+      handleApiError,
+      submitAction,
+      dispatchAction
+    }
+  },
+  beforeUnmount () {
+    // Clean up the event listener.
+    document.removeEventListener('keydown', this.handleKeydown)
+    document.body.classList.remove('disable-scroll')
   }
-  */
 })
 </script>

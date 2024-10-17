@@ -1,6 +1,6 @@
 <template>
   <div class="list-wrapper">
-    <h1 class="mt-2">Tickets List</h1>
+    <h1 class="mt-2">Events List</h1>
 
     <!-- Pagination controls. -->
     <nav aria-label="Page navigation">
@@ -15,9 +15,7 @@
           <a href="#" class="page-link" @click.prevent="goToPage(currentPage + 1)">Next</a>
         </li>
         <li class="page-item last-item">
-          <button @click.prevent="openModal(null)" class="btn btn-primary me-2">Add Ticket</button>
-          <button @click.prevent="openModal(null)" class="btn btn-primary me-2">Add Event</button>
-          <button @click.prevent="openModal(null)" class="btn btn-primary">Add Organiser</button>
+          <button @click.prevent="openModal(null, 'ADD_EVENT')" class="btn btn-primary">Add Event</button>
         </li>
       </ul>
     </nav>
@@ -27,8 +25,9 @@
         <tr>
           <th class="id text-start"><a href="#" @click.prevent="sortBy('id')">ID <i :class="getSortClass('id')"></i></a></th>
           <th class="text-start"><a href="#" @click.prevent="sortBy('name')">Name <i :class="getSortClass('name')"></i></a></th>
+          <th class="text-start"><a href="#" @click.prevent="sortBy('organiser')">Organiser <i :class="getSortClass('organiser')"></i></a></th>
           <th class="description text-start"><a href="#" @click.prevent="sortBy('description')">Description <i :class="getSortClass('description')"></i></a></th>
-          <th class="text-center ticket-events">Events</th>
+          <th class="text-center"><a href="#" @click.prevent="sortBy('active')">Active <i :class="getSortClass('active')"></i></a></th>
           <th class="text-end"><a href="#" @click.prevent="sortBy('createdAt')">Created At <i :class="getSortClass('createdAt')"></i></a></th>
           <th class="text-end"><a href="#" @click.prevent="sortBy('updatedAt')">Updated At <i :class="getSortClass('updatedAt')"></i></a></th>
           <th class="text-center">Actions</th>
@@ -36,27 +35,27 @@
       </thead>
       <tbody>
         <tr
-          v-for="(ticket, index) in paginatedTickets"
-          :key="ticket.id"
+          v-for="(event, index) in paginatedEvents"
+          :key="event.id"
           :class="{'odd': helperIsOdd(index), 'even': !helperIsOdd(index)}"
         >
-          <td class="id text-start">{{ ticket.id }}</td>
-          <td class="text-start">{{ ticket.name }}</td>
-          <td class="description text-start">{{ ticket.description }}</td>
-          <td class="text-center ticket-events">
-            <button v-if="ticket.events.length > 0" @click.prevent="openModal(ticket, true)" class="btn btn-sm btn-secondary">View Events</button>
-            <span v-if="ticket.events.length === 0" class="text-danger">No ticket-related events.</span>
-          </td>
-          <td class="text-end">{{ helperFormatDateTime(new Date(ticket.createdAt)) }}</td>
-          <td class="text-end">{{ helperFormatDateTime(new Date(ticket.updatedAt)) }}</td>
+          <td class="id text-start">{{ event.id }}</td>
+          <td class="text-start">{{ event.name }}</td>
+          <td class="text-start">{{ event.organiser.name }}</td>
+          <td class="description text-start">{{ event.description }}</td>
           <td class="text-center">
-            <button @click.prevent="openModal(ticket)" class="btn btn-sm btn-secondary me-2">Edit</button>
-            <button @click.prevent="deleteEvent(ticket.id)" class="btn btn-sm btn-danger">Delete</button>
+            <span :class="{'text-success': event.isActive, 'text-danger': !event.isActive}">{{ event.isActive ? 'Yes' : 'No' }}</span>
+          </td>
+          <td class="text-end">{{ helperFormatDateTime(new Date(event.createdAt)) }}</td>
+          <td class="text-end">{{ helperFormatDateTime(new Date(event.updatedAt)) }}</td>
+          <td class="text-center">
+            <button @click.prevent="openModal(event, 'EDIT_EVENT')" class="btn btn-sm btn-secondary me-2">Edit</button>
+            <button @click.prevent="openModal(event, 'DELETE_EVENT')" class="btn btn-sm btn-danger">Delete</button>
           </td>
         </tr>
-        <tr v-if="paginatedTickets.length === 0">
-          <td class="text-center" colspan="7">
-            <span class="text-danger">Currently, there are no tickets listed.</span>
+        <tr v-if="paginatedEvents.length === 0">
+          <td class="text-center" colspan="8">
+            <span class="text-danger">Currently, there are no events listed.</span>
           </td>
         </tr>
       </tbody>
@@ -78,19 +77,13 @@
     </nav>
   </div>
 
-  <!-- Modal to view ticket-related events. -->
-  <EventsModal
-    v-if="isEventsModalOpen"
-    :data="selectedData"
-    @close="isEventsModalOpen = false"
-  />
-
-  <!-- Modal for adding / editing ticket. -->
-  <TicketModal
-    v-if="isTicketModalOpen"
-    :data="selectedData"
-    @close="isTicketModalOpen = false"
-    @save="saveEvent"
+  <!-- Modal for adding / editing / deleting event. -->
+  <EventModal
+    v-if="isEventModalOpen"
+    :event="selectedData"
+    :modalAction="modalAction"
+    @close="isEventModalOpen = false"
+    @dispatchParent="loadPageContent"
   />
 </template>
 
@@ -101,13 +94,11 @@ import { useStore } from 'vuex'
 import { useToast } from 'vue-toastification'
 import { useHelper } from '@/store/helpers'
 import { LIST_LIMIT, LIST_OFFSET } from '@/store/constants'
-import TicketModal from './TicketModal.vue'
-import EventsModal from '@/components/events/EventsModal.vue'
+import EventModal from './EventModal.vue'
 
 export default {
   components: {
-    TicketModal,
-    EventsModal
+    EventModal
   },
   setup () {
     // Access Vuex store.
@@ -129,29 +120,30 @@ export default {
       handleApiError
     } = useHelper()
 
-    const tickets = ref([])
-    const ticketsCount = ref(0)
+    const events = ref([])
+    const eventsCount = ref(0)
 
     const selectedData = ref(null)
-    const isEventsModalOpen = ref(false)
-    const isTicketModalOpen = ref(false)
+    const isEventModalOpen = ref(false)
 
     const currentPage = ref(1) // Default value for current page number.
     const perPage = LIST_LIMIT // Number of items per page.
     const sortKey = ref('updatedAt') // Current column to sort by.
     const sortOrder = ref('desc') // Sort order: 'asc' or 'desc'.
 
+    const modalAction = ref('') // Modal action.
+
     /**
      * Watchers: Watch for route query changes.
      */
     watch(() => route.params.currentPage, (newPage) => {
-      fetchTickets(perPage, (newPage - 1) * perPage)
+      fetchEvents(perPage, (newPage - 1) * perPage)
     })
 
     /**
      * Regular Methods.
      */
-    const fetchTickets = async (limit, offset) => {
+    const fetchEvents = async (limit, offset) => {
       limit = limit || LIST_LIMIT
       offset = offset || LIST_OFFSET
 
@@ -160,45 +152,37 @@ export default {
         limit,
         offset
       }
-      await store.dispatch('fetchTickets', requestParams)
+      await store.dispatch('fetchEvents', requestParams)
         .then(
           (response) => {
-            tickets.value = response.data.tickets
-            ticketsCount.value = response.data.ticketsCount
-            // toast.info('Tickets list fetched successfully.')
+            events.value = response.data.events
+            eventsCount.value = response.data.eventsCount
+            // toast.info('Events list fetched successfully.')
           }
         )
         .catch(error => {
           // Handle error response.
-          toast.error(handleApiError(error, 'Failed to fetch the list of tickets.'))
+          toast.error(handleApiError(error, 'Failed to fetch the list of events.'))
         })
     }
 
-    const fetchTicket = (ticketId, viewEvents) => {
-      store.dispatch('fetchTicket', ticketId)
-        .then(
-          (response) => {
-            const ticket = response.data.ticket
-            selectedData.value = { ...ticket }
-            // this.toast.info('Ticket fetched successfully.')
-            if (viewEvents) {
-              isEventsModalOpen.value = true
-            } else {
-              isTicketModalOpen.value = true
-            }
-          }
-        )
-        .catch(error => {
-          // Handle error response.
-          this.toast.error(this.handleApiError(error, 'Failed to fetch the list of tickets.'))
-        })
-    }
+    const openModal = (data, action) => {
+      const params = action.split('_')
+      if (params[1] === 'EVENT') {
+        modalAction.value = params[0]
+        switch (modalAction.value) {
+          case 'ADD':
+            selectedData.value = null
+            break
 
-    const openModal = (ticket, viewEvents) => {
-      // Clone the ticket or set to NULL for NEW.
-      selectedData.value = ticket ? { ...ticket } : null
-      // Fetch entire ticket.
-      fetchTicket(selectedData.value.id, viewEvents)
+          case 'EDIT':
+          case 'DELETE':
+            // Clone the event or set to NULL for NEW.
+            selectedData.value = { ...data }
+            break
+        }
+        isEventModalOpen.value = true
+      }
     }
 
     const fetchEventsFeed = () => {
@@ -246,15 +230,26 @@ export default {
     const goToPage = (page) => {
       if (page > 0 && page <= totalPages.value) {
         currentPage.value = page
-        router.push({ name: 'tickets', params: { currentPage: currentPage.value } })
+        router.push({ name: 'events', params: { currentPage: currentPage.value } })
       }
+    }
+
+    const loadPageContent = () => {
+      // Fetch the paginated events list.
+      fetchEvents(perPage, (currentPage.value - 1) * perPage)
+
+      // Fetch and store all events in the Vuex store.
+      fetchEventsFeed()
+
+      // Fetch and store all organisers in the Vuex store.
+      fetchOrganisersFeed()
     }
 
     /**
      * Computed methods.
      */
-    const sortedTickets = computed(() => {
-      const sorted = [...tickets.value].sort((a, b) => {
+    const sortedEvents = computed(() => {
+      const sorted = [...events.value].sort((a, b) => {
         const modifier = sortOrder.value === 'asc' ? 1 : -1
         /*
         if (this.sortKey === 'events') {
@@ -270,17 +265,17 @@ export default {
       return sorted
     })
 
-    const paginatedTickets = computed(() => {
+    const paginatedEvents = computed(() => {
       /*
       const start = (this.currentPage - 1) * this.perPage
       const end = start + this.perPage
-      return this.sortedTickets.slice(start, end)
+      return this.sortedEvents.slice(start, end)
       */
-      return sortedTickets.value
+      return sortedEvents.value
     })
 
     const totalPages = computed(() => {
-      return Math.ceil(ticketsCount.value / perPage)
+      return Math.ceil(eventsCount.value / perPage)
     })
 
     /**
@@ -290,70 +285,34 @@ export default {
       // Current page based on route parameter.
       currentPage.value = Number(route.params.currentPage) || 1
 
-      // Fetch the paginated tickets list.
-      fetchTickets(perPage, (currentPage.value - 1) * perPage)
-
-      // Fetch and store all events in the Vuex store.
-      fetchEventsFeed()
-
-      // Fetch and store all organisers in the Vuex store.
-      fetchOrganisersFeed()
+      // Load page content.
+      loadPageContent()
     })
 
     return {
       toast,
-      tickets,
-      ticketsCount,
+      events,
+      eventsCount,
       currentPage,
       perPage,
       sortKey,
       sortOrder,
-      paginatedTickets,
+      paginatedEvents,
       totalPages,
       sortBy,
       getSortClass,
       goToPage,
       selectedData,
-      isEventsModalOpen,
-      isTicketModalOpen,
+      isEventModalOpen,
       helperIsOdd,
       helperFormatDateTime,
       handleApiError,
-      fetchTickets,
+      fetchEvents,
       fetchEventsFeed,
-      fetchOrganisersFeed,
-      openModal
+      openModal,
+      modalAction,
+      loadPageContent
     }
   }
-  /*
-  methods: {
-    saveEvent (ticket) {
-      if (ticket.id) {
-        // Edit existing ticket
-        const index = this.tickets.findIndex((e) => e.id === ticket.id)
-        if (index !== -1) {
-          this.$set(this.tickets, index, ticket)
-        }
-      } else {
-        // Add new ticket
-        ticket.id = this.tickets.length + 1 // Temporary ID, adjust with real API logic
-        this.tickets.push(ticket)
-      }
-      this.isTicketModalOpen = false
-    },
-    async deleteEvent (eventId) {
-      const confirmed = confirm('Are you sure you want to delete this ticket?')
-      if (confirmed) {
-        try {
-          this.tickets = this.tickets.filter((ticket) => ticket.id !== eventId)
-          await axios.delete(`/api/tickets/${eventId}`) // Replace with your actual API endpoint
-          this.fetchEvents() // Refresh the tickets list after deletion
-        } catch (error) {
-          console.error('Error deleting ticket:', error)
-        }
-      }
-    }
-  }
-  */
 }
 </script>
