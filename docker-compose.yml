@@ -45,11 +45,11 @@ services:
   # ----------------------------------------------------------------------------
   # Frontend Vue-App.
   # ----------------------------------------------------------------------------
-  vue-app:
+  app-vue:
     build:
       context: .
       dockerfile: Dockerfile
-      target: vue-app
+      target: app_prod
       args:
         - APP_USER=${APP_USER:-app}
         - APP_USER_ID=${APP_USER_ID:-1000}
@@ -84,10 +84,14 @@ services:
     restart: unless-stopped
     depends_on:
       - app
+    volumes: 
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./frontend/dist:/usr/share/nginx/html
     networks:
       - frontend
     ports:
       - ${APP_PORT:-58080}:58080
+      - "8080:80"
   # ----------------------------------------------------------------------------
 
 volumes:

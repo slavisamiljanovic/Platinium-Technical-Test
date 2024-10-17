@@ -83,14 +83,14 @@ ARG APP_USER
 USER ${APP_USER}
 
 # Prevent the re-installation of vendors at every changes in the source code.
-COPY --chown=${APP_USER} composer.* symfony.* ./
+COPY --chown=${APP_USER} ./backend/composer.* ./backend/symfony.* ./
 RUN set -eux; \
     composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress; \
     composer clear-cache
 
 # Copy sources.
-COPY --chown=${APP_USER} . .
-RUN rm -Rf docker/
+COPY --chown=${APP_USER} ./backend .
+# RUN rm -Rf docker/
 
 RUN set -eux; \
     mkdir -p var/cache var/log; \
@@ -102,7 +102,7 @@ RUN set -eux; \
 
 
 # Use the official Node.js image as the base.
-FROM node:22-alpine AS vue-app
+FROM node:22-alpine AS app-vue_prod
 
 # Set working directory inside the container.
 WORKDIR /app
@@ -114,24 +114,19 @@ COPY ./frontend/package*.json ./
 RUN npm install --legacy-peer-deps
 
 # Copy the Vue.js project files to the container.
-COPY . .
+COPY ./frontend .
+
+# Expose port 8080 for Vue dev server.
+EXPOSE 8080
 
 # Build the Vue.js app for production.
-# RUN npm run build
-
-# ARG APP_USER
-# ARG APP_USER_ID
-# RUN adduser --disabled-password -u ${APP_USER_ID} ${APP_USER} && \
-#     chown ${APP_USER}:${APP_USER} -R /app
-
-# ARG APP_USER
-# USER ${APP_USER}
-  
-# Expose port 8080 for Vue dev server.
-# EXPOSE 8080
+RUN npm run build
 
 # Default command: Run shell to allow interactive commands.
-CMD [ "sh" ]
+# CMD [ "sh" ]
+
+# Start the application.
+CMD [ "npm", "run", "serve" ]
 
 
 
@@ -148,6 +143,5 @@ VOLUME /var/www/html/public
 WORKDIR /var/www/html/public
 
 COPY --from=app_prod /var/www/html/public .
-COPY docker/proxy/default.conf /etc/nginx/conf.d/default.conf
 
-
+# COPY docker/proxy/backend.conf /etc/nginx/conf.d/default.conf
