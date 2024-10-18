@@ -81,14 +81,14 @@ ARG APP_USER
 USER ${APP_USER}
 
 # Prevent the re-installation of vendors at every changes in the source code.
-COPY --chown=${APP_USER} ./backend/composer.* ./backend/symfony.* ./
+COPY --chown=${APP_USER} composer.* symfony.* ./
 RUN set -eux; \
     composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress; \
     composer clear-cache
 
 # Copy sources.
-COPY --chown=${APP_USER} ./backend .
-# RUN rm -Rf docker/
+COPY --chown=${APP_USER} . .
+RUN rm -Rf docker/
 
 RUN set -eux; \
     mkdir -p var/cache var/log; \
@@ -97,42 +97,6 @@ RUN set -eux; \
     composer run-script --no-dev post-install-cmd; \
     sync
 
-
-# Use the official Node.js image as the base.
-FROM node:22-alpine AS node_alpine
-
-
-FROM node_alpine AS app-vue_dev
-
-RUN npm install -g @vue/cli --legacy-peer-deps
-
-
-# Use the official Node.js image as the base.
-FROM node_alpine AS app-vue_prod
-
-# Set working directory inside the container.
-WORKDIR /app
-
-# Copy package.json and package-lock.json to the container.
-COPY ./frontend/package*.json ./
-
-# Install dependencies.
-RUN npm install --legacy-peer-deps
-
-# Copy the Vue.js project files to the container.
-COPY ./frontend .
-
-# Expose port 8080 for Vue dev server.
-EXPOSE 8080
-
-# Build the Vue.js app for production.
-RUN npm run build
-
-# Default command: Run shell to allow interactive commands.
-# CMD [ "sh" ]
-
-# Start the application.
-CMD [ "npm", "run", "serve" ]
 
 
 FROM nginx:1-alpine AS proxy
@@ -149,5 +113,5 @@ WORKDIR /var/www/html/public
 
 COPY --from=app_prod /var/www/html/public .
 
-# COPY docker/proxy/backend.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx/conf.d/backend.conf /etc/nginx/conf.d/default.conf
 

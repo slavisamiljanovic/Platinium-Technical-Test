@@ -4,7 +4,7 @@ services:
   # ----------------------------------------------------------------------------
   app:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: app_prod
       args:
@@ -47,24 +47,23 @@ services:
   # ----------------------------------------------------------------------------
   app-vue:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
-      target: app_prod
+      # target: app-vue_prod
       args:
         - APP_USER=${APP_USER:-app}
         - APP_USER_ID=${APP_USER_ID:-1000}
     container_name: app-frontend
     restart: unless-stopped
     depends_on:
+      - db
       - app
     volumes:
       - ./frontend:/app
     ports:
       - "58081:8080"
     networks:
-      - frontend
-      - backend
-      # - vue-app-network
+      - app-vue-network
     stdin_open: true  # Keep STDIN open so you can run interactive commands like 'vue create'.
     tty: true         # Allocate a pseudo-TTY for interaction.
   # ----------------------------------------------------------------------------
@@ -74,7 +73,7 @@ services:
   # ----------------------------------------------------------------------------
   proxy:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: proxy
       args:
@@ -84,14 +83,15 @@ services:
     restart: unless-stopped
     depends_on:
       - app
-    volumes: 
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
-      - ./frontend/dist:/usr/share/nginx/html
+      - app-vue
+    # volumes: 
+    #   - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    #   - ./frontend/dist:/usr/share/nginx/html
     networks:
       - frontend
     ports:
       - ${APP_PORT:-58080}:58080
-      - "8080:80"
+    #   - "8080:80"
   # ----------------------------------------------------------------------------
 
 volumes:
@@ -100,5 +100,5 @@ volumes:
 networks:
   backend:
   frontend:
-#  vue-app-network:
+  app-vue-network:
 #    driver: bridge

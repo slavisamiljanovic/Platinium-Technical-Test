@@ -111,7 +111,7 @@ export default defineComponent({
       }
 
       // Submit the form (call an API to log in).
-      this.$logger.log('AdminLogin -> handleSubmit() -> Logging in with', { logData: loginRequest })
+      // this.$logger.log('AdminLogin -> handleSubmit() -> Logging in with', { logData: loginRequest })
       this.$store.dispatch('login', loginRequest)
         .then(
           () => {
